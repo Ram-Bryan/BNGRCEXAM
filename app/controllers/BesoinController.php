@@ -12,20 +12,14 @@ use PDO;
 
 class BesoinController
 {
-    private PDO $db;
-
-    public function __construct()
-    {
-        $this->db = Flight::db();
-    }
-
     /**
      * Afficher le formulaire de demande de besoin
      */
-    public function showForm()
+    public static function showForm(): void
     {
-        $villes = Ville::findAllComplete($this->db);
-        $typeArticles = TypeArticle::findAllArray($this->db);
+        $db = Flight::db();
+        $villes = Ville::findAllComplete($db);
+        $typeArticles = TypeArticle::findAll($db);
         
         Flight::render('besoin/form', [
             'villes' => $villes,
@@ -36,12 +30,15 @@ class BesoinController
     /**
      * Créer un nouveau besoin
      */
-    public function create()
+    public static function create(): void
     {
-        $ville_id = Flight::request()->data->ville_id;
-        $type_article_id = Flight::request()->data->type_article_id;
-        $quantite = Flight::request()->data->quantite;
-        $date_demande = Flight::request()->data->date_demande;
+        $db = Flight::db();
+        $request = Flight::request();
+        
+        $ville_id = $request->data->ville_id;
+        $type_article_id = $request->data->type_article_id;
+        $quantite = $request->data->quantite;
+        $date_demande = $request->data->date_demande;
 
         try {
             $besoin = new Besoin();
@@ -50,27 +47,28 @@ class BesoinController
                    ->setQuantite((float)$quantite)
                    ->setDateDemande($date_demande);
             
-            if ($besoin->create($this->db)) {
+            if ($besoin->create($db)) {
                 $historique = new HistoriqueBesoin();
                 $historique->setBesoinId($besoin->getId())
                           ->setQuantite((float)$quantite);
-                $historique->create($this->db);
+                $historique->create($db);
                 
-                Flight::redirect('/besoins?success=created');
+                Flight::redirect('/besoins?message=' . urlencode('Besoin créé avec succès'));
             } else {
-                Flight::redirect('/besoins/ajout?error=creation_failed');
+                Flight::redirect('/besoins/ajout?message=' . urlencode('Erreur lors de la création'));
             }
         } catch (\Exception $e) {
-            Flight::redirect('/besoins/ajout?error=' . urlencode($e->getMessage()));
+            Flight::redirect('/besoins/ajout?message=' . urlencode('Erreur : ' . $e->getMessage()));
         }
     }
 
     /**
      * Afficher la liste des besoins
      */
-    public function listBesoins()
+    public static function listBesoins(): void
     {
-        $besoinsData = Besoin::findAllComplete($this->db);
+        $db = Flight::db();
+        $besoinsData = Besoin::findAllComplete($db);
         $besoins = DTOBesoin::fromArrayMultiple($besoinsData);
         
         Flight::render('besoin/list', [
@@ -81,85 +79,96 @@ class BesoinController
     /**
      * Afficher le formulaire de modification d'un besoin
      */
-    public function showEditForm($id)
+    public static function showEditForm($id): void
     {
-        $besoinData = Besoin::findCompleteById($this->db, $id);
+        $db = Flight::db();
+        $besoinData = Besoin::findCompleteById($db, $id);
         if (!$besoinData) {
-            Flight::redirect('/besoins?error=not_found');
+            Flight::redirect('/besoins?message=' . urlencode('Besoin non trouvé'));
             return;
         }
         $besoin = DTOBesoin::fromArray($besoinData);
+        $villes = Ville::findAllComplete($db);
         
         Flight::render('besoin/edit', [
-            'besoin' => $besoin
+            'besoin' => $besoin,
+            'villes' => $villes
         ]);
     }
 
     /**
      * Mettre à jour un besoin
      */
-    public function update($id)
+    public static function update($id): void
     {
-        $quantite = Flight::request()->data->quantite;
+        $db = Flight::db();
+        $request = Flight::request();
+        
+        $ville_id = $request->data->ville_id;
+        $quantite = $request->data->quantite;
 
         try {
-            $besoin = Besoin::findById($this->db, $id);
+            $besoin = Besoin::findById($db, $id);
             if (!$besoin) {
-                Flight::redirect('/besoins?error=not_found');
+                Flight::redirect('/besoins?message=' . urlencode('Besoin non trouvé'));
                 return;
             }
             
-            $besoin->setQuantite((float)$quantite);
+            $besoin->setVilleId((int)$ville_id)
+                   ->setQuantite((float)$quantite);
             
-            if ($besoin->updateQuantite($this->db)) {
+            if ($besoin->update($db)) {
                 $historique = new HistoriqueBesoin();
                 $historique->setBesoinId((int)$id)
                           ->setQuantite((float)$quantite);
-                $historique->create($this->db);
+                $historique->create($db);
                 
-                Flight::redirect('/besoins?success=updated');
+                Flight::redirect('/besoins?message=' . urlencode('Besoin mis à jour avec succès'));
             } else {
-                Flight::redirect('/besoins/' . $id . '/edit?error=update_failed');
+                Flight::redirect('/besoins/' . $id . '/edit?message=' . urlencode('Erreur lors de la mise à jour'));
             }
         } catch (\Exception $e) {
-            Flight::redirect('/besoins/' . $id . '/edit?error=' . urlencode($e->getMessage()));
+            Flight::redirect('/besoins/' . $id . '/edit?message=' . urlencode('Erreur : ' . $e->getMessage()));
         }
     }
 
     /**
      * Supprimer un besoin
      */
-    public function delete($id)
+    public static function delete($id): void
     {
+        $db = Flight::db();
+        
         try {
-            $besoin = Besoin::findById($this->db, $id);
+            $besoin = Besoin::findById($db, $id);
             if (!$besoin) {
-                Flight::redirect('/besoins?error=not_found');
+                Flight::redirect('/besoins?message=' . urlencode('Besoin non trouvé'));
                 return;
             }
             
-            if ($besoin->delete($this->db)) {
-                Flight::redirect('/besoins?success=deleted');
+            if ($besoin->delete($db)) {
+                Flight::redirect('/besoins?message=' . urlencode('Besoin supprimé avec succès'));
             } else {
-                Flight::redirect('/besoins?error=delete_failed');
+                Flight::redirect('/besoins?message=' . urlencode('Erreur lors de la suppression'));
             }
         } catch (\Exception $e) {
-            Flight::redirect('/besoins?error=' . urlencode($e->getMessage()));
+            Flight::redirect('/besoins?message=' . urlencode('Erreur : ' . $e->getMessage()));
         }
     }
 
     /**
      * Afficher l'historique d'un besoin
      */
-    public function showHistorique($id)
+    public static function showHistorique($id): void
     {
-        $besoinData = Besoin::findCompleteById($this->db, $id);
+        $db = Flight::db();
+        $besoinData = Besoin::findCompleteById($db, $id);
         if (!$besoinData) {
-            Flight::redirect('/besoins?error=not_found');
+            Flight::redirect('/besoins?message=' . urlencode('Besoin non trouvé'));
             return;
         }
         $besoin = DTOBesoin::fromArray($besoinData);
-        $historique = HistoriqueBesoin::findByBesoinId($this->db, $id);
+        $historique = HistoriqueBesoin::findByBesoinId($db, $id);
         
         Flight::render('besoin/historique', [
             'besoin' => $besoin,

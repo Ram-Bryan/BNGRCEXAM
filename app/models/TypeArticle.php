@@ -68,24 +68,24 @@ class TypeArticle
         return $article;
     }
 
-    public static function findAll(PDO $db): array
-    {
-        $sql = "SELECT * FROM type_articles ORDER BY categorie, nom";
-        $stmt = $db->query($sql);
-        $results = [];
-        while ($data = $stmt->fetch()) {
-            $article = new TypeArticle();
-            $article->setId($data['id'])
-                    ->setNom($data['nom'])
-                    ->setCategorie($data['categorie'])
-                    ->setPrixUnitaire($data['prix_unitaire'])
-                    ->setUnite($data['unite']);
-            $results[] = $article;
-        }
-        return $results;
-    }
+    // public static function findAll(PDO $db): array
+    // {
+    //     $sql = "SELECT * FROM type_articles ORDER BY categorie, nom";
+    //     $stmt = $db->query($sql);
+    //     $results = [];
+    //     while ($data = $stmt->fetch()) {
+    //         $article = new TypeArticle();
+    //         $article->setId($data['id'])
+    //                 ->setNom($data['nom'])
+    //                 ->setCategorie($data['categorie'])
+    //                 ->setPrixUnitaire($data['prix_unitaire'])
+    //                 ->setUnite($data['unite']);
+    //         $results[] = $article;
+    //     }
+    //     return $results;
+    // }
 
-    public static function findAllArray(PDO $db): array
+    public static function findAll(PDO $db): array
     {
         $sql = "SELECT * FROM type_articles ORDER BY categorie, nom";
         $stmt = $db->query($sql);

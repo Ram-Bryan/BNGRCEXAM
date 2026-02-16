@@ -101,10 +101,6 @@ class Besoin
         return $data ?: null;
     }
 
-    /**
-     * Récupérer les besoins non satisfaits triés par ancienneté (les plus anciens d'abord)
-     * pour la distribution prioritaire des dons
-     */
     public static function findBesoinsNonSatisfaits(PDO $db): array
     {
         $sql = "SELECT * FROM vue_besoins_satisfaction 
@@ -114,9 +110,6 @@ class Besoin
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Récupérer les besoins avec satisfaction pour une ville donnée
-     */
     public static function findBesoinsSatisfactionByVille(PDO $db, int $ville_id): array
     {
         $sql = "SELECT * FROM vue_besoins_satisfaction 
@@ -129,18 +122,36 @@ class Besoin
 
     public function update(PDO $db): bool
     {
-        $sql = "UPDATE besoin 
-                SET ville_id = :ville_id, type_article_id = :type_article_id, 
-                    quantite = :quantite, date_demande = :date_demande 
-                WHERE id = :id";
+        $updates = [];
+        $params = [':id' => $this->id];
+        
+        if ($this->ville_id !== null) {
+            $updates[] = "ville_id = :ville_id";
+            $params[':ville_id'] = $this->ville_id;
+        }
+        
+        if ($this->type_article_id !== null) {
+            $updates[] = "type_article_id = :type_article_id";
+            $params[':type_article_id'] = $this->type_article_id;
+        }
+        
+        if ($this->quantite !== null) {
+            $updates[] = "quantite = :quantite";
+            $params[':quantite'] = $this->quantite;
+        }
+        
+        if ($this->date_demande !== null) {
+            $updates[] = "date_demande = :date_demande";
+            $params[':date_demande'] = $this->date_demande;
+        }
+        
+        if (empty($updates)) {
+            return false;
+        }
+        
+        $sql = "UPDATE besoin SET " . implode(", ", $updates) . " WHERE id = :id";
         $stmt = $db->prepare($sql);
-        return $stmt->execute([
-            ':ville_id' => $this->ville_id,
-            ':type_article_id' => $this->type_article_id,
-            ':quantite' => $this->quantite,
-            ':date_demande' => $this->date_demande,
-            ':id' => $this->id
-        ]);
+        return $stmt->execute($params);
     }
 
     public function updateQuantite(PDO $db): bool
@@ -160,10 +171,6 @@ class Besoin
         return $stmt->execute([':id' => $this->id]);
     }
 
-    /**
-     * Récupérer les besoins restants de catégorie nature ou material pour les achats
-     * Filtre optionnel par ville
-     */
     public static function findBesoinsRestantsAchats(PDO $db, ?int $ville_id = null): array
     {
         $sql = "SELECT * FROM vue_besoins_satisfaction 
@@ -182,10 +189,6 @@ class Besoin
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Récupérer les besoins avec satisfaction incluant les simulations
-     * Utile pour afficher la satisfaction projetée pendant la simulation
-     */
     public static function findBesoinsAvecSimulation(PDO $db): array
     {
         $sql = "SELECT * FROM vue_besoins_satisfaction_avec_simulation 

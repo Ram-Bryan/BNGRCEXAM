@@ -1,12 +1,7 @@
 <?php include __DIR__ . '/../includes/header.php'; ?>
+<link rel="stylesheet" href="<?php echo Flight::get('flight.base_url'); ?>/assets/css/achats.css">
 
-<style>
-    .page-container {
-        background: white;
-        padding: 30px;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
+<div class="page-container">
 
     .header {
         display: flex;
@@ -157,13 +152,6 @@
         text-align: center;
     }
 
-    .montant-preview {
-        font-size: 12px;
-        color: #666;
-        margin-top: 5px;
-    }
-</style>
-
 <div class="page-container">
     <div class="header">
         <div>
@@ -249,20 +237,6 @@
     <?php endif; ?>
 </div>
 
-<script>
-    function confirmAchat(form, prixUnitaire, fraisPercent, argentDispo) {
-        const quantite = parseInt(form.querySelector('input[name="quantite"]').value);
-        const montantHT = quantite * prixUnitaire;
-        const frais = montantHT * (fraisPercent / 100);
-        const total = montantHT + frais;
-
-        if (total > argentDispo) {
-            alert('❌ Argent insuffisant !\n\nMontant requis: ' + total.toLocaleString('fr-FR') + ' Ar\nDisponible: ' + argentDispo.toLocaleString('fr-FR') + ' Ar');
-            return false;
-        }
-
-        return confirm('Confirmer l\'achat ?\n\nQuantité: ' + quantite + '\nMontant HT: ' + montantHT.toLocaleString('fr-FR') + ' Ar\nFrais (' + fraisPercent + '%): ' + frais.toLocaleString('fr-FR') + ' Ar\nTotal TTC: ' + total.toLocaleString('fr-FR') + ' Ar');
-    }
-</script>
+<script src="<?php echo Flight::get('flight.base_url'); ?>/assets/js/achat.js"></script>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

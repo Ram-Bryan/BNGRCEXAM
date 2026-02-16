@@ -13,13 +13,13 @@ Flight::route('GET /', [new HomeController(), 'index']);
 Flight::route('GET /index', [new HomeController(), 'index']);
 
 // ==================== BESOINS ====================
-Flight::route('GET /besoins', [new BesoinController(), 'listBesoins']);
-Flight::route('GET /besoins/ajout', [new BesoinController(), 'showForm']);
-Flight::route('POST /besoins/create', [new BesoinController(), 'create']);
-Flight::route('GET /besoins/@id/edit', [new BesoinController(), 'showEditForm']);
-Flight::route('POST /besoins/@id/update', [new BesoinController(), 'update']);
-Flight::route('POST /besoins/@id/delete', [new BesoinController(), 'delete']);
-Flight::route('GET /besoins/@id/historique', [new BesoinController(), 'showHistorique']);
+Flight::route('GET /besoins', [BesoinController::class, 'listBesoins']);
+Flight::route('GET /besoins/ajout', [BesoinController::class, 'showForm']);
+Flight::route('POST /besoins/create', [BesoinController::class, 'create']);
+Flight::route('GET /besoins/@id/edit', [BesoinController::class, 'showEditForm']);
+Flight::route('POST /besoins/@id/update', [BesoinController::class, 'update']);
+Flight::route('POST /besoins/@id/delete', [BesoinController::class, 'delete']);
+Flight::route('GET /besoins/@id/historique', [BesoinController::class, 'showHistorique']);
 
 // ==================== DONS ====================
 Flight::route('GET /dons', [new DonController(), 'listDons']);

@@ -7,61 +7,104 @@ namespace dto;
  */
 class DTOBesoin
 {
-    public ?int $id = null;
-    public ?int $ville_id = null;
-    public ?int $type_article_id = null;
-    public ?float $quantite = null;
-    public ?string $date_demande = null;
+    private ?int $id = null;
+    private ?int $ville_id = null;
+    private ?int $type_article_id = null;
+    private ?float $quantite = null;
+    private ?string $date_demande = null;
     
-    public ?string $ville_nom = null;
-    public ?int $nbsinistres = null;
+    private ?string $ville_nom = null;
+    private ?int $nbsinistres = null;
     
-    public ?int $region_id = null;
-    public ?string $region_nom = null;
+    private ?int $region_id = null;
+    private ?string $region_nom = null;
     
-    public ?string $article_nom = null;
-    public ?string $categorie = null;
-    public ?float $prix_unitaire = null;
-    public ?string $unite = null;
+    private ?string $article_nom = null;
+    private ?string $categorie = null;
+    private ?float $prix_unitaire = null;
+    private ?string $unite = null;
     
-    public ?float $montant_total = null;
+    private ?float $montant_total = null;
 
     // Champs de satisfaction (optionnels, peuplés depuis vue_besoins_satisfaction)
-    public ?float $quantite_recue = null;
-    public ?float $quantite_restante = null;
-    public ?float $ratio_satisfaction = null;
+    private ?float $quantite_recue = null;
+    private ?float $quantite_restante = null;
+    private ?float $ratio_satisfaction = null;
 
     public function __construct()
     {
     }
 
+    // ==================== GETTERS ====================
+    
+    public function getId(): ?int { return $this->id; }
+    public function getVilleId(): ?int { return $this->ville_id; }
+    public function getTypeArticleId(): ?int { return $this->type_article_id; }
+    public function getQuantite(): ?float { return $this->quantite; }
+    public function getDateDemande(): ?string { return $this->date_demande; }
+    
+    public function getVilleNom(): ?string { return $this->ville_nom; }
+    public function getNbsinistres(): ?int { return $this->nbsinistres; }
+    
+    public function getRegionId(): ?int { return $this->region_id; }
+    public function getRegionNom(): ?string { return $this->region_nom; }
+    
+    public function getArticleNom(): ?string { return $this->article_nom; }
+    public function getCategorie(): ?string { return $this->categorie; }
+    public function getPrixUnitaire(): ?float { return $this->prix_unitaire; }
+    public function getUnite(): ?string { return $this->unite; }
+    
+    public function getMontantTotal(): ?float { return $this->montant_total; }
+    public function getQuantiteRecue(): ?float { return $this->quantite_recue; }
+    public function getQuantiteRestante(): ?float { return $this->quantite_restante; }
+    public function getRatioSatisfaction(): ?float { return $this->ratio_satisfaction; }
+
+    // ==================== SETTERS ====================
+    
+    public function setId(?int $id): self { $this->id = $id; return $this; }
+    public function setVilleId(?int $ville_id): self { $this->ville_id = $ville_id; return $this; }
+    public function setTypeArticleId(?int $type_article_id): self { $this->type_article_id = $type_article_id; return $this; }
+    public function setQuantite(?float $quantite): self { $this->quantite = $quantite; return $this; }
+    public function setDateDemande(?string $date_demande): self { $this->date_demande = $date_demande; return $this; }
+    
+    public function setVilleNom(?string $ville_nom): self { $this->ville_nom = $ville_nom; return $this; }
+    public function setNbsinistres(?int $nbsinistres): self { $this->nbsinistres = $nbsinistres; return $this; }
+    
+    public function setRegionId(?int $region_id): self { $this->region_id = $region_id; return $this; }
+    public function setRegionNom(?string $region_nom): self { $this->region_nom = $region_nom; return $this; }
+    
+    public function setArticleNom(?string $article_nom): self { $this->article_nom = $article_nom; return $this; }
+    public function setCategorie(?string $categorie): self { $this->categorie = $categorie; return $this; }
+    public function setPrixUnitaire(?float $prix_unitaire): self { $this->prix_unitaire = $prix_unitaire; return $this; }
+    public function setUnite(?string $unite): self { $this->unite = $unite; return $this; }
+    
+    public function setMontantTotal(?float $montant_total): self { $this->montant_total = $montant_total; return $this; }
+    public function setQuantiteRecue(?float $quantite_recue): self { $this->quantite_recue = $quantite_recue; return $this; }
+    public function setQuantiteRestante(?float $quantite_restante): self { $this->quantite_restante = $quantite_restante; return $this; }
+    public function setRatioSatisfaction(?float $ratio_satisfaction): self { $this->ratio_satisfaction = $ratio_satisfaction; return $this; }
+
     public static function fromArray(array $data): DTOBesoin
     {
         $dto = new DTOBesoin();
-        $dto->id = $data['id'] ?? null;
-        $dto->ville_id = $data['ville_id'] ?? null;
-        $dto->type_article_id = $data['type_article_id'] ?? null;
-        $dto->quantite = $data['quantite'] ?? ($data['quantite_demandee'] ?? null);
-        $dto->date_demande = $data['date_demande'] ?? null;
+        $dto->setId($data['id'] ?? null)
+            ->setVilleId($data['ville_id'] ?? null)
+            ->setTypeArticleId($data['type_article_id'] ?? null)
+            ->setQuantite($data['quantite'] ?? ($data['quantite_demandee'] ?? null))
+            ->setDateDemande($data['date_demande'] ?? null)
+            ->setVilleNom($data['ville_nom'] ?? null)
+            ->setNbsinistres($data['nbsinistres'] ?? null)
+            ->setRegionId($data['region_id'] ?? null)
+            ->setRegionNom($data['region_nom'] ?? null)
+            ->setArticleNom($data['article_nom'] ?? null)
+            ->setCategorie($data['categorie'] ?? null)
+            ->setPrixUnitaire($data['prix_unitaire'] ?? null)
+            ->setUnite($data['unite'] ?? null)
+            ->setQuantiteRecue($data['quantite_recue'] ?? null)
+            ->setQuantiteRestante($data['quantite_restante'] ?? null)
+            ->setRatioSatisfaction($data['ratio_satisfaction'] ?? null);
         
-        $dto->ville_nom = $data['ville_nom'] ?? null;
-        $dto->nbsinistres = $data['nbsinistres'] ?? null;
-        
-        $dto->region_id = $data['region_id'] ?? null;
-        $dto->region_nom = $data['region_nom'] ?? null;
-        
-        $dto->article_nom = $data['article_nom'] ?? null;
-        $dto->categorie = $data['categorie'] ?? null;
-        $dto->prix_unitaire = $data['prix_unitaire'] ?? null;
-        $dto->unite = $data['unite'] ?? null;
-        
-        // Satisfaction
-        $dto->quantite_recue = $data['quantite_recue'] ?? null;
-        $dto->quantite_restante = $data['quantite_restante'] ?? null;
-        $dto->ratio_satisfaction = $data['ratio_satisfaction'] ?? null;
-        
-        if ($dto->quantite !== null && $dto->prix_unitaire !== null) {
-            $dto->montant_total = $dto->quantite * $dto->prix_unitaire;
+        if ($dto->getQuantite() !== null && $dto->getPrixUnitaire() !== null) {
+            $dto->setMontantTotal($dto->getQuantite() * $dto->getPrixUnitaire());
         }
         
         return $dto;

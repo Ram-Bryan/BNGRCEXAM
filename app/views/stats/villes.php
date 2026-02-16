@@ -1,25 +1,5 @@
 <?php include __DIR__ . '/../includes/header.php'; ?>
-
-<style>
-    .page-container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th { background-color: #2c3e50; color: white; padding: 12px; text-align: left; }
-    td { padding: 12px; border-bottom: 1px solid #ddd; }
-    tr:hover { background-color: #f5f5f5; cursor: pointer; }
-    .btn { display: inline-block; padding: 8px 16px; background-color: #3498db; color: white; text-decoration: none; border-radius: 4px; font-size: 13px; }
-    .btn:hover { background-color: #2980b9; }
-    .progress-bar-container { width: 100%; background-color: #e9ecef; border-radius: 4px; overflow: hidden; height: 24px; position: relative; }
-    .progress-bar { height: 100%; border-radius: 4px; transition: width 0.3s; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold; min-width: 30px; }
-    .progress-low { background-color: #dc3545; }
-    .progress-partial { background-color: #ffc107; color: #333; }
-    .progress-complete { background-color: #28a745; }
-    .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
-    .stat-card { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; border-radius: 10px; text-align: center; }
-    .stat-card.green { background: linear-gradient(135deg, #11998e, #38ef7d); }
-    .stat-card.orange { background: linear-gradient(135deg, #f2994a, #f2c94c); }
-    .stat-card .stat-value { font-size: 32px; font-weight: bold; }
-    .stat-card .stat-label { font-size: 13px; opacity: 0.9; }
-</style>
+<link rel="stylesheet" href="<?php echo Flight::get('flight.base_url'); ?>/assets/css/stats.css">
 
 <div class="page-container">
     <h1 style="margin-bottom: 10px;">📊 Statistiques par Ville</h1>

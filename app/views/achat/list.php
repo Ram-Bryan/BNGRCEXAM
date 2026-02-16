@@ -1,12 +1,7 @@
 <?php include __DIR__ . '/../includes/header.php'; ?>
+<link rel="stylesheet" href="<?php echo Flight::get('flight.base_url'); ?>/assets/css/achats.css">
 
-<style>
-    .page-container {
-        background: white;
-        padding: 30px;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
+<div class="page-container">
 
     .header {
         display: flex;
@@ -154,13 +149,6 @@
         font-size: 14px;
         opacity: 0.9;
     }
-
-    .actions-bar {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
-    }
-</style>
 
 <div class="page-container">
     <div class="header">

@@ -1,34 +1,5 @@
 <?php include __DIR__ . '/../includes/header.php'; ?>
-
-<style>
-    .page-container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-    .btn { display: inline-block; padding: 10px 20px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 4px; font-size: 14px; }
-    .btn:hover { background-color: #545b62; }
-    .ville-header { background: linear-gradient(135deg, #1a5276, #2980b9); color: white; padding: 30px; border-radius: 10px; margin-bottom: 30px; }
-    .ville-header h1 { margin-bottom: 5px; }
-    .ville-stats { display: flex; gap: 30px; margin-top: 15px; }
-    .ville-stat { text-align: center; }
-    .ville-stat .value { font-size: 28px; font-weight: bold; }
-    .ville-stat .label { font-size: 12px; opacity: 0.8; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th { background-color: #2c3e50; color: white; padding: 12px; text-align: left; }
-    td { padding: 12px; border-bottom: 1px solid #ddd; }
-    tr:hover { background-color: #f5f5f5; }
-    .badge { display: inline-block; padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: bold; }
-    .badge-nature { background-color: #28a745; color: white; }
-    .badge-argent { background-color: #ffc107; color: #333; }
-    .badge-material { background-color: #6c757d; color: white; }
-    .progress-bar-container { width: 120px; background-color: #e9ecef; border-radius: 4px; overflow: hidden; height: 22px; position: relative; display: inline-block; }
-    .progress-bar { height: 100%; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: bold; min-width: 30px; }
-    .progress-low { background-color: #dc3545; }
-    .progress-partial { background-color: #ffc107; color: #333; }
-    .progress-complete { background-color: #28a745; }
-    .ratio-complete { color: #28a745; font-weight: bold; }
-    .ratio-partial { color: #ffc107; font-weight: bold; }
-    .ratio-low { color: #dc3545; font-weight: bold; }
-    .ratio-none { color: #999; }
-    .empty-state { text-align: center; padding: 60px 20px; color: #666; }
-</style>
+<link rel="stylesheet" href="<?php echo Flight::get('flight.base_url'); ?>/assets/css/stats.css">
 
 <div class="page-container">
     <a href="/stats" class="btn" style="margin-bottom: 20px;">← Retour aux statistiques</a>

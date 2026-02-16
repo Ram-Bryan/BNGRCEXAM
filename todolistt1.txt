@@ -1,0 +1,279 @@
+═══════════════════════════════════════════════════════════════════
+TODOLIST - MODULE BESOINS - RECONSTRUCTION COMPLÈTE
+═══════════════════════════════════════════════════════════════════
+
+📋 PHASE 1 : BASE DE DONNÉES (Estimation: 15min)
+───────────────────────────────────────────────────────────────────
+
+1.1 Créer la table `besoin`
+    □ Colonnes : id (PK AUTO_INCREMENT), ville_id (FK), type_article_id (FK)
+    □ Colonnes : quantite (DECIMAL), date_demande (DATE)
+    □ Index : INDEX(ville_id), INDEX(type_article_id), INDEX(date_demande)
+    ⏱ Temps estimé : 5 min
+
+1.2 Créer la table `historique_besoin`
+    □ Colonnes : id (PK AUTO_INCREMENT), besoin_id (FK), quantite (DECIMAL)
+    □ Colonnes : date_enregistrement (DATETIME DEFAULT CURRENT_TIMESTAMP)
+    □ Index : INDEX(besoin_id), INDEX(date_enregistrement)
+    □ Contrainte : ON DELETE CASCADE sur besoin_id
+    ⏱ Temps estimé : 3 min
+
+1.3 Créer la vue `vue_besoins_complets`
+    □ SELECT b.*, v.nom AS ville_nom, v.nbsinistres, v.region_id
+    □ r.nom AS region_nom, ta.nom AS article_nom, ta.categorie
+    □ ta.prix_unitaire, ta.unite
+    □ JOIN ville v, region r, type_articles ta
+    □ Calculer montant_total : (quantite * prix_unitaire)
+    ⏱ Temps estimé : 4 min
+
+1.4 Créer la vue `vue_besoins_satisfaction`
+    □ Étendre vue_besoins_complets avec agrégations distributions
+    □ COALESCE(SUM(d.quantite), 0) AS quantite_recue
+    □ (b.quantite - quantite_recue) AS quantite_restante
+    □ (quantite_recue / b.quantite * 100) AS ratio_satisfaction
+    □ LEFT JOIN distributions d ON d.besoin_id = b.id
+    □ GROUP BY b.id
+    ⏱ Temps estimé : 3 min
+
+
+📋 PHASE 2 : MODÈLES (Estimation: 20min)
+───────────────────────────────────────────────────────────────────
+
+2.1 Créer Besoin.php (app/models/)
+    □ Properties privées : id, ville_id, type_article_id, quantite, date_demande
+    □ Getters/Setters pour chaque propriété (fluent interface : return $this)
+    □ create(PDO $db): bool - INSERT avec PDO prepared statement
+    □ findById(PDO $db, int $id): ?Besoin - SELECT avec FETCH_ASSOC
+    □ findAll(PDO $db): array - SELECT * FROM besoin ORDER BY date_demande DESC
+    ⏱ Temps estimé : 8 min
+
+2.2 Méthodes avancées Besoin.php
+    □ findAllComplete(PDO $db): array - SELECT * FROM vue_besoins_complets
+    □ findCompleteById(PDO $db, int $id): ?array - vue_besoins_complets WHERE id
+    □ update(PDO $db): bool - UPDATE dynamique (if field !== null)
+    □ updateQuantite(PDO $db): bool - UPDATE besoin SET quantite WHERE id
+    □ delete(PDO $db): bool - DELETE FROM besoin WHERE id
+    ⏱ Temps estimé : 7 min
+
+2.3 Créer HistoriqueBesoin.php (app/models/)
+    □ Properties privées : id, besoin_id, quantite, date_enregistrement
+    □ Getters/Setters fluent interface
+    □ create(PDO $db): bool - INSERT historique
+    □ findByBesoinId(PDO $db, int $besoin_id): array - ORDER BY date DESC
+    ⏱ Temps estimé : 5 min
+
+
+📋 PHASE 3 : DTO (Estimation: 10min)
+───────────────────────────────────────────────────────────────────
+
+3.1 Créer DTOBesoin.php (app/dto/)
+    □ Properties PRIVÉES avec types : id, ville_id, type_article_id, quantite
+    □ Properties : date_demande, ville_nom, nbsinistres, region_id, region_nom
+    □ Properties : article_nom, categorie, prix_unitaire, unite, montant_total
+    □ Properties satisfaction : quantite_recue, quantite_restante, ratio_satisfaction
+    □ Créer 36 méthodes (18 getters + 18 setters) avec fluent interface
+    ⏱ Temps estimé : 6 min
+
+3.2 Méthodes statiques et helpers DTOBesoin
+    □ static fromArray(array $data): DTOBesoin - utiliser setters (chaînage)
+    □ static fromArrayMultiple(array $dataArray): array
+    □ getCategorieClass(): string - match categorie to CSS class
+    □ getDateFormatee(): string - date('d/m/Y')
+    □ getMontantTotalFormate(): string - number_format avec séparateurs
+    □ getQuantiteFormatee(), getPrixUnitaireFormate()
+    □ getRatioClass(), getRatioFormate()
+    ⏱ Temps estimé : 4 min
+
+
+📋 PHASE 4 : CONTRÔLEUR (Estimation: 15min)
+───────────────────────────────────────────────────────────────────
+
+4.1 Créer BesoinController.php (app/controllers/)
+    □ Namespace controllers, use models\*, dto\DTOBesoin, Flight, PDO
+    □ TOUS LES MÉTHODES STATIC : public static function
+    □ Pas de constructor, pas de $this->db
+    □ Utiliser Flight::db() dans chaque méthode
+    ⏱ Temps estimé : 2 min
+
+4.2 Méthode showForm()
+    □ public static function showForm(): void
+    □ $villes = Ville::findAllComplete(Flight::db())
+    □ $typeArticles = TypeArticle::findAll(Flight::db())
+    □ Flight::render('besoin/form', ['villes' => $villes, ...])
+    ⏱ Temps estimé : 2 min
+
+4.3 Méthode create()
+    □ public static function create(): void
+    □ $request = Flight::request() - extraire data
+    □ Créer Besoin avec setters (ville_id, type_article_id, quantite, date_demande)
+    □ $besoin->create(Flight::db())
+    □ Créer HistoriqueBesoin->create() pour tracer quantité initiale
+    □ Flight::redirect('/besoins?message=' . urlencode('Besoin créé avec succès'))
+    □ Gérer try/catch pour erreurs
+    ⏱ Temps estimé : 3 min
+
+4.4 Méthode listBesoins()
+    □ public static function listBesoins(): void
+    □ $besoinsData = Besoin::findAllComplete(Flight::db())
+    □ $besoins = DTOBesoin::fromArrayMultiple($besoinsData)
+    □ Flight::render('besoin/list', ['besoins' => $besoins])
+    ⏱ Temps estimé : 2 min
+
+4.5 Méthode showEditForm($id)
+    □ public static function showEditForm($id): void
+    □ $besoinData = Besoin::findCompleteById(Flight::db(), $id)
+    □ if (!$besoinData) redirect avec message erreur
+    □ $besoin = DTOBesoin::fromArray($besoinData)
+    □ $villes = Ville::findAllComplete(Flight::db())
+    □ Flight::render('besoin/edit', ['besoin' => $besoin, 'villes' => $villes])
+    ⏱ Temps estimé : 2 min
+
+4.6 Méthode update($id)
+    □ public static function update($id): void
+    □ $request = Flight::request(), extraire ville_id et quantite
+    □ Charger Besoin::findById(), vérifier existence
+    □ $besoin->setVilleId(ville_id)->setQuantite(quantite)
+    □ $besoin->update(Flight::db()) - utiliser update dynamique
+    □ Créer HistoriqueBesoin pour tracer la modification
+    □ redirect('/besoins?message=Besoin mis à jour avec succès')
+    ⏱ Temps estimé : 3 min
+
+4.7 Méthodes delete($id) et showHistorique($id)
+    □ delete: findById, delete(), redirect avec message
+    □ showHistorique: findCompleteById + HistoriqueBesoin::findByBesoinId
+    □ Créer DTO, render 'besoin/historique'
+    ⏱ Temps estimé : 1 min
+
+
+📋 PHASE 5 : VUES (Estimation: 20min)
+───────────────────────────────────────────────────────────────────
+
+5.1 Créer form.php (app/views/besoin/)
+    □ <?php include header, link CSS forms.css
+    □ Div message : <?php if (isset($_GET['message'])): ?>
+    □ Form POST /besoins/create avec select ville_id (foreach $villes)
+    □ Select type_article_id avec optgroup simplifié (grouper par categorie d'abord)
+    □ Input quantite (type=number), input date_demande (value=today)
+    □ Buttons submit + annuler (retour /besoins)
+    ⏱ Temps estimé : 6 min
+
+5.2 Créer list.php (app/views/besoin/)
+    □ <?php include header, link CSS besoins.css
+    □ Div message unifié : isset($_GET['message'])
+    □ Header avec titre + bouton "Nouvelle demande"
+    □ Table avec thead (ID, Région, Ville, Article, Catégorie, Quantité, etc.)
+    □ Tbody foreach $besoins : utiliser GETTERS ($besoin->getId(), getVilleNom())
+    □ Badge categorie : getCategorieClass(), getCategorie() - PAS ucfirst
+    □ Actions : liens historique, edit, form delete avec confirm
+    □ Empty state si vide
+    ⏱ Temps estimé : 5 min
+
+5.3 Créer edit.php (app/views/besoin/)
+    □ <?php include header, link CSS forms.css
+    □ H1 avec $besoin->getId()
+    □ Div message unifié
+    □ Besoin-info div avec info-grid : UTILISER GETTERS partout
+    □ Form POST /besoins/{id}/update avec select ville_id + input quantite
+    □ Select ville avec option selected sur ville actuelle
+    □ Buttons : submit, annuler, voir historique
+    ⏱ Temps estimé : 5 min
+
+5.4 Créer historique.php (app/views/besoin/)
+    □ <?php include header, link CSS besoins.css
+    □ H1 avec $besoin->getId(), bouton retour
+    □ Besoin-info identique à edit.php (UTILISER GETTERS)
+    □ Div timeline avec foreach $historique
+    □ Timeline-item avec date, quantite formatée
+    □ Empty state si pas d'historique
+    ⏱ Temps estimé : 4 min
+
+
+📋 PHASE 6 : ROUTES (Estimation: 2min)
+───────────────────────────────────────────────────────────────────
+
+6.1 Déclarer routes besoins (app/routes.php)
+    □ use controllers\BesoinController
+    □ Flight::route('GET /besoins', [BesoinController::class, 'listBesoins'])
+    □ Flight::route('GET /besoins/ajout', [BesoinController::class, 'showForm'])
+    □ Flight::route('POST /besoins/create', [BesoinController::class, 'create'])
+    □ Flight::route('GET /besoins/@id/edit', [BesoinController::class, 'showEditForm'])
+    □ Flight::route('POST /besoins/@id/update', [BesoinController::class, 'update'])
+    □ Flight::route('POST /besoins/@id/delete', [BesoinController::class, 'delete'])
+    □ Flight::route('GET /besoins/@id/historique', [BesoinController::class, 'showHistorique'])
+    ⏱ Temps estimé : 2 min
+
+
+📋 PHASE 7 : CSS (Estimation: 8min)
+───────────────────────────────────────────────────────────────────
+
+7.1 Créer/Améliorer besoins.css (public/assets/css/)
+    □ th { background-color: #007bff; }
+    □ .actions { display: flex; gap: 8px; }
+    □ .timeline avec ::before (ligne verticale gradient)
+    □ .timeline-item avec hover transform, box-shadow
+    □ .timeline-item::before avec emoji 📌
+    □ .timeline-date et .timeline-quantite avec icônes
+    □ .message unifié (background, border-left, padding, shadow)
+    ⏱ Temps estimé : 5 min
+
+7.2 Vérifier forms.css (public/assets/css/)
+    □ .page-container, .form-group, .buttons
+    □ .besoin-info, .info-grid, .info-item
+    □ .warning-box, .info-box
+    □ Responsive design (media queries)
+    ⏱ Temps estimé : 3 min
+
+
+═══════════════════════════════════════════════════════════════════
+RÉSUMÉ TEMPS TOTAL ESTIMÉ : 1H30
+═══════════════════════════════════════════════════════════════════
+
+Phase 1 (DB)         : 15min
+Phase 2 (Modèles)    : 20min
+Phase 3 (DTO)        : 10min
+Phase 4 (Contrôleur) : 15min
+Phase 5 (Vues)       : 20min
+Phase 6 (Routes)     : 2min
+Phase 7 (CSS)        : 8min
+
+═══════════════════════════════════════════════════════════════════
+PRINCIPES ARCHITECTURAUX À RESPECTER
+═══════════════════════════════════════════════════════════════════
+
+✅ ENCAPSULATION
+   • Toutes les propriétés DTO PRIVÉES avec getters/setters
+   • Pas d'accès direct : $besoin->id ❌ -> $besoin->getId() ✅
+
+✅ MÉTHODES STATIQUES
+   • BesoinController : ALL STATIC methods
+   • Pas de constructor, pas de $this
+   • Flight::db() dans chaque méthode
+
+✅ SQL DYNAMIQUE
+   • Besoin::update() construit SQL selon champs non-null
+   • if ($this->ville_id !== null) $sql .= "ville_id = :ville_id, "
+   • Évite UPDATE inutile si aucun champ
+
+✅ MESSAGES UNIFIÉS
+   • Un seul div .message avec $_GET['message']
+   • Pas de divs séparés success/error
+   • urlencode() dans redirects
+
+✅ HTML PUR
+   • Pas de echo '</optgroup>' ou echo '<div>'
+   • Utiliser <?php if: ?> ... <?php endif; ?>
+   • Balises HTML en pur HTML
+
+✅ PAS UCFIRST()
+   • Catégories stockées en minuscules en DB
+   • Affichage direct sans transformation
+   • CSS peut faire text-transform si nécessaire
+
+✅ GETTERS PARTOUT
+   • Dans TOUTES les vues : $besoin->getId()
+   • Jamais $besoin->id, $besoin->ville_nom, etc.
+   • Respecter encapsulation
+
+═══════════════════════════════════════════════════════════════════
+FIN DE LA TODOLIST
+═══════════════════════════════════════════════════════════════════

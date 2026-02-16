@@ -1,0 +1,92 @@
+/* CSS for stats pages */
+th {
+    background-color: #2c3e50;
+}
+
+tr {
+    cursor: pointer;
+}
+
+.stat-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.stat-card.green {
+    background: linear-gradient(135deg, #11998e, #38ef7d);
+}
+
+.stat-card.orange {
+    background: linear-gradient(135deg, #f2994a, #f2c94c);
+}
+
+.stat-card .stat-value {
+    font-size: 32px;
+    font-weight: bold;
+}
+
+.stat-card .stat-label {
+    font-size: 13px;
+    opacity: 0.9;
+}
+
+.ville-header {
+    background: linear-gradient(135deg, #1a5276, #2980b9);
+    color: white;
+    padding: 30px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+}
+
+.ville-header h1 {
+    margin-bottom: 5px;
+}
+
+.ville-stats {
+    display: flex;
+    gap: 30px;
+    margin-top: 15px;
+}
+
+.ville-stat {
+    text-align: center;
+}
+
+.ville-stat .value {
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.ville-stat .label {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+.ratio-complete {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.ratio-partial {
+    color: #ffc107;
+    font-weight: bold;
+}
+
+.ratio-low {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.ratio-none {
+    color: #999;
+}
