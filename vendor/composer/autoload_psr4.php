@@ -9,6 +9,7 @@ return array(
     'utils\\' => array($baseDir . '/app/utils'),
     'models\\' => array($baseDir . '/app/models'),
     'flight\\' => array($vendorDir . '/flightphp/runway/src'),
+    'dto\\' => array($baseDir . '/app/dto'),
     'controllers\\' => array($baseDir . '/app/controllers'),
     'Tracy\\' => array($vendorDir . '/tracy/tracy/src'),
     'Nette\\' => array($vendorDir . '/nette/php-generator/src', $vendorDir . '/nette/utils/src'),

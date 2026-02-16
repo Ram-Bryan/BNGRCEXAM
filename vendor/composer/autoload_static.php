@@ -25,6 +25,10 @@ class ComposerStaticInit4b3a253f57d31d773b6986822b8dc6cf
         array (
             'flight\\' => 7,
         ),
+        'd' =>
+        array (
+            'dto\\' => 4,
+        ),
         'c' =>
         array (
             'controllers\\' => 12,
@@ -55,6 +59,10 @@ class ComposerStaticInit4b3a253f57d31d773b6986822b8dc6cf
         'flight\\' =>
         array (
             0 => __DIR__ . '/..' . '/flightphp/runway/src',
+        ),
+        'dto\\' =>
+        array (
+            0 => __DIR__ . '/../..' . '/app/dto',
         ),
         'controllers\\' =>
         array (

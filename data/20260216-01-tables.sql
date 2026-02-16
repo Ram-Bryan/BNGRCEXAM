@@ -5,6 +5,7 @@ CREATE TABLE region (
 
 CREATE TABLE ville (
     id INT PRIMARY KEY AUTO_INCREMENT,
+    nom VARCHAR(100) NOT NULL,
     idregion INT NOT NULL,
     nbsinistres INT DEFAULT 0,
     FOREIGN KEY (idregion) REFERENCES region(id)
@@ -34,4 +35,12 @@ CREATE TABLE dons (
     quantite INT NOT NULL,
     date_livraison DATE NOT NULL,
     FOREIGN KEY (idbesoins) REFERENCES besoin(id)
+);
+
+CREATE TABLE historique_besoin (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    besoin_id INT NOT NULL,
+    quantite INT NOT NULL,
+    date_enregistrement DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (besoin_id) REFERENCES besoin(id) ON DELETE CASCADE
 );
