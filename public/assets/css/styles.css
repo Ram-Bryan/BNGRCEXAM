@@ -1,0 +1,35 @@
+.quantity-content {
+  display: flex;
+  justify-content: space-between;
+  margin: 20px 0;
+}
+
+.quantity-content .main-border-button {
+  display: inline-block;
+}
+
+.quantity-content .main-border-button a {
+  background-color: #2a2a2a;
+  color: white;
+  padding: 12px 25px;
+  text-decoration: none;
+  border: 2px solid #2a2a2a;
+  border-radius: 25px;
+  font-weight: 500;
+  transition: all 0.3s;
+  display: inline-block;
+}
+
+.quantity-content .main-border-button a:hover {
+  background-color: transparent;
+  color: #2a2a2a;
+}
+
+.quantity-content .left-content,
+.quantity-content .right-content {
+  width: 48%;
+}
+
+.quantity-content .right-content {
+  text-align: right;
+}
