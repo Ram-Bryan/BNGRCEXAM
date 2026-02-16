@@ -12,7 +12,7 @@
 
     <!-- Zone de simulation -->
     <div class="simulation-box">
-        <h2>🎯 Distribution des Dons</h2>
+        <h2>🎯 Distribution des Dons(Plus ancien)</h2>
         <p style="opacity: 0.9; margin-bottom: 20px;">
             1. Cliquez sur <strong>SIMULER</strong> pour prévisualiser la distribution<br>
             2. Vérifiez les attributions proposées<br>
@@ -20,10 +20,10 @@
         </p>
         <div class="buttons-row">
             <button type="button" class="btn btn-warning btn-lg" id="btn-simuler" onclick="simuler()">
-                👁️ SIMULER
+                SIMULER
             </button>
             <button type="button" class="btn btn-success btn-lg" id="btn-distribuer" onclick="valider()" <?php echo empty($simulations) ? 'disabled' : ''; ?>>
-                ✅ DISTRIBUER
+                DISTRIBUER
             </button>
             <?php if (!empty($simulations)): ?>
                 <button type="button" class="btn btn-danger btn-lg" onclick="annuler()">
