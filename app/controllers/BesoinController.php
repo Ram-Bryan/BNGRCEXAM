@@ -15,7 +15,7 @@ class BesoinController
     /**
      * Afficher le formulaire de demande de besoin
      */
-    public static function showForm(): void
+    public static function showForm($message = null): void
     {
         $db = Flight::db();
         $villes = Ville::findAllComplete($db);
@@ -23,7 +23,8 @@ class BesoinController
         
         Flight::render('besoin/form', [
             'villes' => $villes,
-            'typeArticles' => $typeArticles
+            'typeArticles' => $typeArticles,
+            'message' => $message
         ]);
     }
 
@@ -52,39 +53,69 @@ class BesoinController
                 $historique->setBesoinId($besoin->getId())
                           ->setQuantite((float)$quantite);
                 $historique->create($db);
-                
-                Flight::redirect('/besoins?message=' . urlencode('Besoin créé avec succès'));
+
+                // Render liste avec message (pas d'URL)
+                $besoinsData = Besoin::findAllComplete($db);
+                $besoins = DTOBesoin::fromArrayMultiple($besoinsData);
+                Flight::render('besoin/list', [
+                    'besoins' => $besoins,
+                    'message' => 'Besoin créé avec succès'
+                ]);
+                return;
             } else {
-                Flight::redirect('/besoins/ajout?message=' . urlencode('Erreur lors de la création'));
+                $villes = Ville::findAllComplete($db);
+                $typeArticles = TypeArticle::findAll($db);
+
+                Flight::render('besoin/form', [
+                    'villes' => $villes,
+                    'typeArticles' => $typeArticles,
+                    'message' => 'Erreur lors de la création'
+                ]);
+                return;
             }
         } catch (\Exception $e) {
-            Flight::redirect('/besoins/ajout?message=' . urlencode('Erreur : ' . $e->getMessage()));
+            $villes = Ville::findAllComplete($db);
+            $typeArticles = TypeArticle::findAll($db);
+
+            Flight::render('besoin/form', [
+                'villes' => $villes,
+                'typeArticles' => $typeArticles,
+                'message' => 'Erreur : ' . $e->getMessage()
+            ]);
+            return;
         }
     }
 
     /**
      * Afficher la liste des besoins
      */
-    public static function listBesoins(): void
+    public static function listBesoins($message = null): void
     {
         $db = Flight::db();
         $besoinsData = Besoin::findAllComplete($db);
         $besoins = DTOBesoin::fromArrayMultiple($besoinsData);
         
         Flight::render('besoin/list', [
-            'besoins' => $besoins
+            'besoins' => $besoins,
+            'message' => $message
         ]);
     }
 
     /**
      * Afficher le formulaire de modification d'un besoin
      */
-    public static function showEditForm($id): void
+    public static function showEditForm($id, $message = null): void
     {
         $db = Flight::db();
         $besoinData = Besoin::findCompleteById($db, $id);
         if (!$besoinData) {
-            Flight::redirect('/besoins?message=' . urlencode('Besoin non trouvé'));
+            $besoinsData = Besoin::findAllComplete($db);
+            $besoins = DTOBesoin::fromArrayMultiple($besoinsData);
+
+            Flight::render('besoin/list', [
+                'besoins' => $besoins,
+                'message' => 'Besoin non trouvé'
+            ]);
             return;
         }
         $besoin = DTOBesoin::fromArray($besoinData);
@@ -92,7 +123,8 @@ class BesoinController
         
         Flight::render('besoin/edit', [
             'besoin' => $besoin,
-            'villes' => $villes
+            'villes' => $villes,
+            'message' => $message
         ]);
     }
 
@@ -110,7 +142,13 @@ class BesoinController
         try {
             $besoin = Besoin::findById($db, $id);
             if (!$besoin) {
-                Flight::redirect('/besoins?message=' . urlencode('Besoin non trouvé'));
+                $besoinsData = Besoin::findAllComplete($db);
+                $besoins = DTOBesoin::fromArrayMultiple($besoinsData);
+
+                Flight::render('besoin/list', [
+                    'besoins' => $besoins,
+                    'message' => 'Besoin non trouvé'
+                ]);
                 return;
             }
             
@@ -122,13 +160,38 @@ class BesoinController
                 $historique->setBesoinId((int)$id)
                           ->setQuantite((float)$quantite);
                 $historique->create($db);
-                
-                Flight::redirect('/besoins?message=' . urlencode('Besoin mis à jour avec succès'));
+
+                $besoinsData = Besoin::findAllComplete($db);
+                $besoins = DTOBesoin::fromArrayMultiple($besoinsData);
+
+                Flight::render('besoin/list', [
+                    'besoins' => $besoins,
+                    'message' => 'Besoin mis à jour avec succès'
+                ]);
+                return;
             } else {
-                Flight::redirect('/besoins/' . $id . '/edit?message=' . urlencode('Erreur lors de la mise à jour'));
+                $besoinData2 = Besoin::findCompleteById($db, $id);
+                $besoinDto2 = DTOBesoin::fromArray($besoinData2);
+                $villes = Ville::findAllComplete($db);
+
+                Flight::render('besoin/edit', [
+                    'besoin' => $besoinDto2,
+                    'villes' => $villes,
+                    'message' => 'Erreur lors de la mise à jour'
+                ]);
+                return;
             }
         } catch (\Exception $e) {
-            Flight::redirect('/besoins/' . $id . '/edit?message=' . urlencode('Erreur : ' . $e->getMessage()));
+            $besoinData3 = Besoin::findCompleteById($db, $id);
+            $besoinDto3 = DTOBesoin::fromArray($besoinData3);
+            $villes = Ville::findAllComplete($db);
+
+            Flight::render('besoin/edit', [
+                'besoin' => $besoinDto3,
+                'villes' => $villes,
+                'message' => 'Erreur : ' . $e->getMessage()
+            ]);
+            return;
         }
     }
 
@@ -142,29 +205,62 @@ class BesoinController
         try {
             $besoin = Besoin::findById($db, $id);
             if (!$besoin) {
-                Flight::redirect('/besoins?message=' . urlencode('Besoin non trouvé'));
+                $besoinsData = Besoin::findAllComplete($db);
+                $besoins = DTOBesoin::fromArrayMultiple($besoinsData);
+
+                Flight::render('besoin/list', [
+                    'besoins' => $besoins,
+                    'message' => 'Besoin non trouvé'
+                ]);
                 return;
             }
             
             if ($besoin->delete($db)) {
-                Flight::redirect('/besoins?message=' . urlencode('Besoin supprimé avec succès'));
+                $besoinsData = Besoin::findAllComplete($db);
+                $besoins = DTOBesoin::fromArrayMultiple($besoinsData);
+
+                Flight::render('besoin/list', [
+                    'besoins' => $besoins,
+                    'message' => 'Besoin supprimé avec succès'
+                ]);
+                return;
             } else {
-                Flight::redirect('/besoins?message=' . urlencode('Erreur lors de la suppression'));
+                $besoinsData = Besoin::findAllComplete($db);
+                $besoins = DTOBesoin::fromArrayMultiple($besoinsData);
+
+                Flight::render('besoin/list', [
+                    'besoins' => $besoins,
+                    'message' => 'Erreur lors de la suppression'
+                ]);
+                return;
             }
         } catch (\Exception $e) {
-            Flight::redirect('/besoins?message=' . urlencode('Erreur : ' . $e->getMessage()));
+            $besoinsData = Besoin::findAllComplete($db);
+            $besoins = DTOBesoin::fromArrayMultiple($besoinsData);
+
+            Flight::render('besoin/list', [
+                'besoins' => $besoins,
+                'message' => 'Erreur : ' . $e->getMessage()
+            ]);
+            return;
         }
     }
 
     /**
      * Afficher l'historique d'un besoin
      */
-    public static function showHistorique($id): void
+    public static function showHistorique($id, $message = null): void
     {
         $db = Flight::db();
         $besoinData = Besoin::findCompleteById($db, $id);
         if (!$besoinData) {
-            Flight::redirect('/besoins?message=' . urlencode('Besoin non trouvé'));
+            $besoinsData = Besoin::findAllComplete($db);
+            $besoins = DTOBesoin::fromArrayMultiple($besoinsData);
+
+            Flight::render('besoin/list', [
+                'besoins' => $besoins,
+                'message' => 'Besoin non trouvé'
+            ]);
             return;
         }
         $besoin = DTOBesoin::fromArray($besoinData);
@@ -172,7 +268,8 @@ class BesoinController
         
         Flight::render('besoin/historique', [
             'besoin' => $besoin,
-            'historique' => $historique
+            'historique' => $historique,
+            'message' => $message
         ]);
     }
 }

@@ -1,0 +1,26 @@
+MINSSION Refractor Dons:
+    - list.php:
+        - ne fais pas GET success mais isset GET message echo message 
+        - enleve ca et met lesdans controller pour render:
+            - <!-- Statistiques rapides -->
+            <?php
+            $totalDons = count($dons ?? []);
+            $totalDisponible = 0;
+            $totalDistribue = 0;
+            foreach ($dons as $don) {
+                $disponible = $don['quantite_disponible'] ?? ($don['quantite'] - ($don['quantite_distribuee'] ?? 0));
+                $distribue = $don['quantite_distribuee'] ?? 0;
+                $totalDisponible += $disponible;
+                $totalDistribue += $distribue;
+            }
+            ?>
+    
+    - form.php:
+        - utilser isset GET message
+        
+    
+    - routes.php:
+        - pas de new DonCotnroller mais Doncontroller::class avec foncions statiques 
+    
+    - creer la todolist2.txt cette fois pour les dons comme tu l'as fais pour la todolist1 des besoins
+        

@@ -45,6 +45,11 @@
             <p>Aucune modification n'a encore été enregistrée pour ce besoin</p>
         </div>
     <?php else: ?>
+        <?php if (!empty($message)): ?>
+            <div class="message">
+                <?php echo htmlspecialchars($message); ?>
+            </div>
+        <?php endif; ?>
         <div class="timeline">
             <?php foreach ($historique as $entry): ?>
                 <div class="timeline-item">

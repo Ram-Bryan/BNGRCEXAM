@@ -109,7 +109,6 @@ JOIN ville v ON b.ville_id = v.id
 JOIN region r ON v.idregion = r.id
 JOIN type_articles ta ON d.type_article_id = ta.id;
 
--- Vue des besoins avec ratio de satisfaction (distributions validées uniquement)
 CREATE OR REPLACE VIEW vue_besoins_satisfaction AS
 SELECT 
     b.id,
@@ -162,9 +161,6 @@ LEFT JOIN (
 ) sub ON sub.besoin_id = b.id
 GROUP BY v.id, v.nom, v.nbsinistres, r.id, r.nom;
 
--- Vue avec satisfaction incluant aussi les simulations
--- Utile pour voir la satisfaction projetée pendant la simulation
-
 CREATE OR REPLACE VIEW vue_besoins_satisfaction_avec_simulation AS
 SELECT 
     b.id,
@@ -180,17 +176,11 @@ SELECT
     ta.categorie,
     ta.prix_unitaire,
     ta.unite,
-    -- Quantité reçue (validée seulement)
     COALESCE(SUM(CASE WHEN dist.est_simulation = FALSE THEN dist.quantite ELSE 0 END), 0) AS quantite_recue,
-    -- Quantité simulée (inclut aussi les simulations)
     COALESCE(SUM(dist.quantite), 0) AS quantite_recue_avec_simulation,
-    -- Quantité restante (validée seulement)
     GREATEST(0, b.quantite - COALESCE(SUM(CASE WHEN dist.est_simulation = FALSE THEN dist.quantite ELSE 0 END), 0)) AS quantite_restante,
-    -- Quantité restante avec simulation
     GREATEST(0, b.quantite - COALESCE(SUM(dist.quantite), 0)) AS quantite_restante_avec_simulation,
-    -- Ratio de satisfaction (validée seulement)
     LEAST(100, ROUND(COALESCE(SUM(CASE WHEN dist.est_simulation = FALSE THEN dist.quantite ELSE 0 END), 0) * 100.0 / b.quantite, 2)) AS ratio_satisfaction,
-    -- Ratio de satisfaction avec simulation
     LEAST(100, ROUND(COALESCE(SUM(dist.quantite), 0) * 100.0 / b.quantite, 2)) AS ratio_satisfaction_avec_simulation
 FROM besoin b
 JOIN ville v ON b.ville_id = v.id
@@ -199,7 +189,6 @@ JOIN type_articles ta ON b.type_article_id = ta.id
 LEFT JOIN distribution dist ON dist.besoin_id = b.id
 GROUP BY b.id, b.ville_id, b.type_article_id, b.quantite, b.date_demande,
          v.nom, v.nbsinistres, r.id, r.nom, ta.nom, ta.categorie, ta.prix_unitaire, ta.unite;
-
 
 
 CREATE OR REPLACE VIEW vue_achats_complets AS

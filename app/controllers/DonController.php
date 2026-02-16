@@ -33,7 +33,7 @@ class DonController
      */
     public function showForm()
     {
-        $typeArticles = TypeArticle::findAllArray($this->db);
+        $typeArticles = TypeArticle::findAll($this->db);
 
         Flight::render('don/form', [
             'typeArticles' => $typeArticles

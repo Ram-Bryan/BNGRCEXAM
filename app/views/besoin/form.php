@@ -5,9 +5,9 @@
     <h1>📋 Formulaire de Demande de Besoin</h1>
     <p style="color: #666; margin-bottom: 30px;">Remplissez le formulaire pour enregistrer une nouvelle demande</p>
 
-    <?php if (isset($_GET['message'])): ?>
+    <?php if (!empty($message)): ?>
         <div class="message">
-            <?php echo htmlspecialchars($_GET['message']); ?>
+            <?php echo htmlspecialchars($message); ?>
         </div>
     <?php endif; ?>
 

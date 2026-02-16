@@ -10,9 +10,9 @@
         <a href="/besoins/ajout" class="btn btn-success">➕ Nouvelle demande</a>
     </div>
 
-    <?php if (isset($_GET['message'])): ?>
+    <?php if (!empty($message)): ?>
         <div class="message">
-            <?php echo htmlspecialchars($_GET['message']); ?>
+            <?php echo htmlspecialchars($message); ?>
         </div>
     <?php endif; ?>
 

@@ -5,9 +5,9 @@
     <h1>✏️ Modifier le Besoin #<?php echo $besoin->getId(); ?></h1>
     <p style="color: #666; margin-bottom: 30px;">Modifier le besoin (un historique sera enregistré)</p>
 
-    <?php if (isset($_GET['message'])): ?>
+    <?php if (!empty($message)): ?>
         <div class="message">
-            <?php echo htmlspecialchars($_GET['message']); ?>
+            <?php echo htmlspecialchars($message); ?>
         </div>
     <?php endif; ?>
 
