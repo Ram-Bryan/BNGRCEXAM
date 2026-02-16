@@ -168,75 +168,169 @@ class Distribution
         return $stmt->execute();
     }
 
-    /**
-     * Créer les distributions automatiquement (simulation)
-     * Dispatch par ordre de date de demande (besoins les plus anciens en premier)
-     * Puis par ordre de date de don (dons les plus anciens en premier)
-     */
-    public static function simulerDistribution(PDO $db): array
+    public static function simulerDistribution(PDO $db, string $logic = 'ancien'): array
     {
-        // D'abord, supprimer les anciennes simulations
-        self::supprimerSimulations(db: $db);
+        self::supprimerSimulations($db);
 
+        $besoins = self::recupererBesoins($db);
+
+        if ($logic === 'proportionnel') {
+            return self::simulerProportionnel($db, $besoins);
+        }
+
+        return self::simulerAncien($db, $besoins);
+    }
+
+    private static function recupererBesoins(PDO $db): array
+    {
+        $sql = "SELECT * FROM v_bngrc_besoins_avec_articles WHERE categorie != 'argent'";
+        $stmt = $db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    private static function simulerProportionnel(PDO $db, array $besoins): array
+    {
         $resultats = [];
-
-        // Récupérer les besoins non satisfaits, triés par date (les plus anciens en premier)
-        $sqlBesoins = "SELECT * FROM v_bngrc_besoins_avec_articles
-               WHERE categorie != 'argent'
-               ORDER BY date_demande ASC, id ASC";
-        $stmtBesoins = $db->query($sqlBesoins);
-        $besoins = $stmtBesoins->fetchAll(PDO::FETCH_ASSOC);
+        $types = [];
 
         foreach ($besoins as $besoin) {
-            // Quantité déjà reçue pour ce besoin (distributions validées)
-            $sqlRecu = "SELECT COALESCE(SUM(quantite), 0) FROM bngrc_distribution 
-                        WHERE besoin_id = :besoin_id AND est_simulation = FALSE";
-            $stmtRecu = $db->prepare($sqlRecu);
-            $stmtRecu->execute([':besoin_id' => $besoin['id']]);
-            $quantiteRecue = (int)$stmtRecu->fetchColumn();
+            $types[$besoin['type_article_id']][] = $besoin;
+        }
 
-            $quantiteRestante = $besoin['quantite'] - $quantiteRecue;
+        foreach ($types as $type_article_id => $besoinsType) {
 
-            if ($quantiteRestante <= 0) {
-                continue; // Besoin déjà satisfait
-            }
-
-            // Récupérer les dons disponibles du même type d'article
-            $sqlDons = "SELECT * FROM v_bngrc_dons_disponibles_par_type
-                        WHERE type_article_id = :type_article_id
-                        ORDER BY date_don ASC, id ASC";
+            $sqlDons = "SELECT * FROM v_bngrc_dons_disponibles_par_type 
+                    WHERE type_article_id = :type_article_id 
+                    ORDER BY date_don ASC, id ASC";
             $stmtDons = $db->prepare($sqlDons);
-            $stmtDons->execute([':type_article_id' => $besoin['type_article_id']]);
+            $stmtDons->execute([':type_article_id' => $type_article_id]);
             $dons = $stmtDons->fetchAll(PDO::FETCH_ASSOC);
 
+            $besoinsRestants = [];
+            $totalRestant = 0;
+
+            foreach ($besoinsType as $besoin) {
+                $sqlRecu = "SELECT COALESCE(SUM(quantite),0) 
+                        FROM bngrc_distribution 
+                        WHERE besoin_id = :besoin_id 
+                        AND est_simulation = FALSE";
+                $stmtRecu = $db->prepare($sqlRecu);
+                $stmtRecu->execute([':besoin_id' => $besoin['id']]);
+
+                $reste = $besoin['quantite'] - (int)$stmtRecu->fetchColumn();
+
+                if ($reste > 0) {
+                    $besoinsRestants[$besoin['id']] = $reste;
+                    $totalRestant += $reste;
+                }
+            }
+
+            if ($totalRestant == 0) continue;
+
             foreach ($dons as $don) {
-                if ($quantiteRestante <= 0) break;
 
-                $quantiteADistribuer = min($quantiteRestante, $don['quantite_disponible']);
+                $qDispo = $don['quantite_disponible'];
+                $resteARepartir = $qDispo;
+                $affectations = [];
 
-                if ($quantiteADistribuer > 0) {
-                    // Créer la distribution (simulation)
+                foreach ($besoinsRestants as $besoinId => $qBesoin) {
+                    $qAffecte = floor($qDispo * ($qBesoin / $totalRestant));
+                    $qAffecte = min($qAffecte, $besoinsRestants[$besoinId]);
+                    $affectations[$besoinId] = $qAffecte;
+                    $resteARepartir -= $qAffecte;
+                }
+
+                if ($resteARepartir > 0) {
+                    arsort($besoinsRestants);
+                    foreach (array_keys($besoinsRestants) as $besoinId) {
+                        if ($resteARepartir <= 0) break;
+                        if ($affectations[$besoinId] < $besoinsRestants[$besoinId]) {
+                            $affectations[$besoinId]++;
+                            $resteARepartir--;
+                        }
+                    }
+                }
+
+                foreach ($affectations as $besoinId => $qAffecte) {
+                    if ($qAffecte <= 0) continue;
+
                     $dist = new Distribution();
                     $dist->setDonId($don['id'])
-                        ->setBesoinId($besoin['id'])
-                        ->setQuantite($quantiteADistribuer)
+                        ->setBesoinId($besoinId)
+                        ->setQuantite($qAffecte)
                         ->setDateDistribution(date('Y-m-d'))
-                        ->setEstSimulation(true);
-                    $dist->create($db);
+                        ->setEstSimulation(true)
+                        ->create($db);
 
                     $resultats[] = [
                         'don_id' => $don['id'],
-                        'besoin_id' => $besoin['id'],
-                        'quantite' => $quantiteADistribuer
+                        'besoin_id' => $besoinId,
+                        'quantite' => $qAffecte
                     ];
 
-                    $quantiteRestante -= $quantiteADistribuer;
+                    $besoinsRestants[$besoinId] -= $qAffecte;
                 }
             }
         }
 
         return $resultats;
     }
+
+    private static function simulerAncien(PDO $db, array $besoins): array
+    {
+        $resultats = [];
+
+        usort($besoins, function ($a, $b) {
+            return strtotime($a['date_demande']) <=> strtotime($b['date_demande'])
+                ?: ($a['id'] <=> $b['id']);
+        });
+
+        foreach ($besoins as $besoin) {
+
+            $sqlRecu = "SELECT COALESCE(SUM(quantite),0) 
+                    FROM bngrc_distribution 
+                    WHERE besoin_id = :besoin_id 
+                    AND est_simulation = FALSE";
+            $stmtRecu = $db->prepare($sqlRecu);
+            $stmtRecu->execute([':besoin_id' => $besoin['id']]);
+
+            $reste = $besoin['quantite'] - (int)$stmtRecu->fetchColumn();
+            if ($reste <= 0) continue;
+
+            $sqlDons = "SELECT * FROM v_bngrc_dons_disponibles_par_type 
+                    WHERE type_article_id = :type_article_id 
+                    ORDER BY date_don ASC, id ASC";
+            $stmtDons = $db->prepare($sqlDons);
+            $stmtDons->execute([':type_article_id' => $besoin['type_article_id']]);
+            $dons = $stmtDons->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($dons as $don) {
+                if ($reste <= 0) break;
+
+                $q = min($reste, $don['quantite_disponible']);
+                if ($q <= 0) continue;
+
+                $dist = new Distribution();
+                $dist->setDonId($don['id'])
+                    ->setBesoinId($besoin['id'])
+                    ->setQuantite($q)
+                    ->setDateDistribution(date('Y-m-d'))
+                    ->setEstSimulation(true)
+                    ->create($db);
+
+                $resultats[] = [
+                    'don_id' => $don['id'],
+                    'besoin_id' => $besoin['id'],
+                    'quantite' => $q
+                ];
+
+                $reste -= $q;
+            }
+        }
+
+        return $resultats;
+    }
+
 
     /**
      * Récupérer un résumé de la simulation actuelle

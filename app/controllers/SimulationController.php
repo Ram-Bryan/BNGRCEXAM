@@ -36,8 +36,7 @@ class SimulationController
                 $besoin['ratio_display'] = $besoin['ratio_satisfaction'];
                 $besoin['is_projected'] = false;
             }
-            $besoin['progress_class'] = $besoin['ratio_display'] >= 100 ? 'progress-complete' : 
-                                       ($besoin['ratio_display'] >= 50 ? 'progress-partial' : 'progress-low');
+            $besoin['progress_class'] = $besoin['ratio_display'] >= 100 ? 'progress-complete' : ($besoin['ratio_display'] >= 50 ? 'progress-partial' : 'progress-low');
             $besoin['progress_width'] = min($besoin['ratio_display'], 100);
         }
         unset($besoin);
@@ -68,7 +67,8 @@ class SimulationController
     {
         try {
             $db = Flight::db();
-            $resultats = Distribution::simulerDistribution($db);
+            $logic = $_POST['distribution_logic'] ?? 'ancien';
+            $resultats = Distribution::simulerDistribution($db, $logic);
             $resume = Distribution::getResumeSimulation($db);
 
             // Récupérer les détails de la simulation
