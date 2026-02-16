@@ -1,3 +1,5 @@
 CREATE DATABASE bngrc;
 
+DROP DATABASE bngrc;
+
 USE bngrc;

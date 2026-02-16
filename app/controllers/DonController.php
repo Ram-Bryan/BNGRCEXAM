@@ -3,9 +3,7 @@
 namespace controllers;
 
 use models\Don;
-use models\Besoin;
-use dto\DTODon;
-use dto\DTOBesoin;
+use models\TypeArticle;
 use Flight;
 use PDO;
 
@@ -24,60 +22,42 @@ class DonController
     public function listDons()
     {
         $donsData = Don::findAllComplete($this->db);
-        $dons = DTODon::fromArrayMultiple($donsData);
-        
+
         Flight::render('don/list', [
-            'dons' => $dons
+            'dons' => $donsData
         ]);
     }
 
     /**
      * Afficher le formulaire d'ajout de don
-     * Les besoins non satisfaits sont triés par date_demande ASC (priorité aux plus anciens)
      */
     public function showForm()
     {
-        // Récupérer les besoins non satisfaits triés par ancienneté
-        $besoinsData = Besoin::findBesoinsNonSatisfaits($this->db);
-        $besoins = DTOBesoin::fromArrayMultiple($besoinsData);
-        
+        $typeArticles = TypeArticle::findAllArray($this->db);
+
         Flight::render('don/form', [
-            'besoins' => $besoins
+            'typeArticles' => $typeArticles
         ]);
     }
 
     /**
      * Créer un nouveau don
-     * Logique de distribution : les besoins les plus anciens sont prioritaires
      */
     public function create()
     {
-        $idbesoins = Flight::request()->data->idbesoins;
+        $type_article_id = Flight::request()->data->type_article_id;
         $quantite = Flight::request()->data->quantite;
-        $date_livraison = Flight::request()->data->date_livraison;
+        $date_don = Flight::request()->data->date_don;
+        $donateur = Flight::request()->data->donateur;
 
         try {
-            // Vérifier que le besoin existe et n'est pas déjà complètement satisfait
-            $besoinData = Besoin::findCompleteById($this->db, $idbesoins);
-            if (!$besoinData) {
-                Flight::redirect('/dons/ajout?error=besoin_not_found');
-                return;
-            }
-
-            // Vérifier la quantité restante
-            $totalDonsExistants = Don::getTotalDonsByBesoin($this->db, $idbesoins);
-            $quantiteRestante = $besoinData['quantite'] - $totalDonsExistants;
-            
-            if ($quantite > $quantiteRestante) {
-                Flight::redirect('/dons/ajout?error=' . urlencode("Quantité trop élevée. Restant: $quantiteRestante"));
-                return;
-            }
-
             $don = new Don();
-            $don->setIdbesoins($idbesoins)
+            $don->setTypeArticleId($type_article_id)
                 ->setQuantite($quantite)
-                ->setDateLivraison($date_livraison);
-            
+                ->setDateDon($date_don)
+                ->setDonateur($donateur ?: 'Anonyme')
+                ->setStatut('disponible');
+
             if ($don->create($this->db)) {
                 Flight::redirect('/dons?success=created');
             } else {
@@ -99,7 +79,7 @@ class DonController
                 Flight::redirect('/dons?error=not_found');
                 return;
             }
-            
+
             if ($don->delete($this->db)) {
                 Flight::redirect('/dons?success=deleted');
             } else {

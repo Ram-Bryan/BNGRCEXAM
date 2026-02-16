@@ -31,10 +31,23 @@ CREATE TABLE besoin (
 
 CREATE TABLE dons (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    idbesoins INT NOT NULL,
+    type_article_id INT NOT NULL,
     quantite INT NOT NULL,
-    date_livraison DATE NOT NULL,
-    FOREIGN KEY (idbesoins) REFERENCES besoin(id)
+    date_don DATE NOT NULL,
+    donateur VARCHAR(200) DEFAULT 'Anonyme',
+    statut ENUM('disponible', 'distribue') DEFAULT 'disponible',
+    FOREIGN KEY (type_article_id) REFERENCES type_articles(id)
+);
+
+CREATE TABLE distribution (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    don_id INT NOT NULL,
+    besoin_id INT NOT NULL,
+    quantite INT NOT NULL,
+    date_distribution DATE NOT NULL,
+    est_simulation BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (don_id) REFERENCES dons(id) ON DELETE CASCADE,
+    FOREIGN KEY (besoin_id) REFERENCES besoin(id) ON DELETE CASCADE
 );
 
 CREATE TABLE historique_besoin (

@@ -8,52 +8,42 @@ namespace dto;
 class DTODon
 {
     public ?int $id = null;
-    public ?int $besoin_id = null;
-    public ?int $quantite_don = null;
-    public ?string $date_livraison = null;
-    
-    public ?float $quantite_besoin = null;
-    public ?string $date_demande = null;
-    public ?int $ville_id = null;
     public ?int $type_article_id = null;
-    
-    public ?string $ville_nom = null;
-    public ?int $nbsinistres = null;
-    public ?int $region_id = null;
-    public ?string $region_nom = null;
-    
+    public ?int $quantite = null;
+    public ?string $date_don = null;
+    public ?string $donateur = null;
+    public ?string $statut = null;
+
     public ?string $article_nom = null;
     public ?string $categorie = null;
     public ?float $prix_unitaire = null;
     public ?string $unite = null;
+    public ?float $montant_total = null;
 
-    public function __construct()
-    {
-    }
+    public ?int $quantite_distribuee = null;
+    public ?int $quantite_disponible = null;
+
+    public function __construct() {}
 
     public static function fromArray(array $data): DTODon
     {
         $dto = new DTODon();
         $dto->id = $data['id'] ?? null;
-        $dto->besoin_id = $data['besoin_id'] ?? null;
-        $dto->quantite_don = $data['quantite_don'] ?? null;
-        $dto->date_livraison = $data['date_livraison'] ?? null;
-        
-        $dto->quantite_besoin = $data['quantite_besoin'] ?? null;
-        $dto->date_demande = $data['date_demande'] ?? null;
-        $dto->ville_id = $data['ville_id'] ?? null;
         $dto->type_article_id = $data['type_article_id'] ?? null;
-        
-        $dto->ville_nom = $data['ville_nom'] ?? null;
-        $dto->nbsinistres = $data['nbsinistres'] ?? null;
-        $dto->region_id = $data['region_id'] ?? null;
-        $dto->region_nom = $data['region_nom'] ?? null;
-        
+        $dto->quantite = $data['quantite'] ?? null;
+        $dto->date_don = $data['date_don'] ?? null;
+        $dto->donateur = $data['donateur'] ?? null;
+        $dto->statut = $data['statut'] ?? null;
+
         $dto->article_nom = $data['article_nom'] ?? null;
         $dto->categorie = $data['categorie'] ?? null;
         $dto->prix_unitaire = $data['prix_unitaire'] ?? null;
         $dto->unite = $data['unite'] ?? null;
-        
+        $dto->montant_total = $data['montant_total'] ?? null;
+
+        $dto->quantite_distribuee = $data['quantite_distribuee'] ?? null;
+        $dto->quantite_disponible = $data['quantite_disponible'] ?? null;
+
         return $dto;
     }
 
@@ -68,7 +58,7 @@ class DTODon
 
     public function getCategorieClass(): string
     {
-        return match($this->categorie) {
+        return match ($this->categorie) {
             'nature' => 'badge-nature',
             'argent' => 'badge-argent',
             'material' => 'badge-material',
@@ -76,21 +66,24 @@ class DTODon
         };
     }
 
-    public function getDateLivraisonFormatee(): string
+    public function getDateDonFormatee(): string
     {
-        if (!$this->date_livraison) return '';
-        return date('d/m/Y', strtotime($this->date_livraison));
+        if (!$this->date_don) return '';
+        return date('d/m/Y', strtotime($this->date_don));
     }
 
-    public function getDateDemandeFormatee(): string
+    public function getMontantFormate(): string
     {
-        if (!$this->date_demande) return '';
-        return date('d/m/Y', strtotime($this->date_demande));
+        if ($this->montant_total === null) return '0,00';
+        return number_format($this->montant_total, 2, ',', ' ');
     }
 
-    public function getMontantDon(): string
+    public function getStatutClass(): string
     {
-        if ($this->quantite_don === null || $this->prix_unitaire === null) return '0,00';
-        return number_format($this->quantite_don * $this->prix_unitaire, 2, ',', ' ');
+        return match ($this->statut) {
+            'disponible' => 'badge-success',
+            'distribue' => 'badge-secondary',
+            default => 'badge-default'
+        };
     }
 }
