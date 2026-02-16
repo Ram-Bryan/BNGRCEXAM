@@ -1,0 +1,29 @@
+table:
+region:
+    id nom 
+
+ville:
+    id 
+    idegion 
+    nbsinistes
+
+type_articles:
+    - id 
+    - nom 
+    - ENUM categorie (nature, argent, material)
+    - prix unitaire 
+    - unite 
+
+besoin:
+    - id 
+    - ville id 
+    - type article id 
+    - quantite
+    - date demande
+
+dons:
+    - id 
+    - idbesoins
+    - quantite
+    - date livrison
+
