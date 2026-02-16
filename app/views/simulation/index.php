@@ -18,6 +18,22 @@
             2. Vérifiez les attributions proposées<br>
             3. Cliquez sur <strong>DISTRIBUER</strong> pour valider définitivement
         </p>
+
+        <div class="logic-row" style="margin-bottom: 18px; display: flex; gap: 30px; align-items: center;">
+            <label style="font-weight: normal;">
+                <input type="radio" name="distribution_logic" value="ancien" checked>
+                Plus ancien
+            </label>
+            <label style="font-weight: normal;">
+                <input type="radio" name="distribution_logic" value="petit">
+                Plus petit
+            </label>
+            <label style="font-weight: normal;">
+                <input type="radio" name="distribution_logic" value="proportionnel">
+                Proportionnel
+            </label>
+        </div>
+        
         <div class="buttons-row">
             <button type="button" class="btn btn-warning btn-lg" id="btn-simuler" onclick="simuler()">
                 SIMULER

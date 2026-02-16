@@ -18,12 +18,9 @@ class SimulationController
     {
         $db = Flight::db();
 
-        // Vérifier s'il y a des simulations en cours
         $simulationsData = Distribution::findSimulations($db);
         $hasSimulation = !empty($simulationsData);
 
-        // Si simulation en cours, utiliser la vue avec simulation pour voir la projection
-        // Sinon utiliser la vue standard
         if ($hasSimulation) {
             $besoinsData = Besoin::findBesoinsAvecSimulation($db);
         } else {
