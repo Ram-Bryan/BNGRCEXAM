@@ -246,7 +246,7 @@
                     <th>Article</th>
                     <th>Quantité</th>
                     <th>Montant HT</th>
-                    <th>Frais (<?php echo FRAIS_ACHAT_PERCENT; ?>%)</th>
+                    <th>Frais (<?php echo \models\Configuration::getValue(Flight::db(), 'FRAIS_ACHAT_PERCENT', 10, 'int'); ?>%)</th>
                     <th>Total TTC</th>
                     <th>Date</th>
                     <th>Statut</th>

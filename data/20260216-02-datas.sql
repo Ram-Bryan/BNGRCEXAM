@@ -46,7 +46,10 @@ INSERT INTO type_articles (nom, categorie, prix_unitaire, unite) VALUES
 ('Tentes', 'material', 120000.00, 'unité'),
 ('Couvertures', 'material', 8000.00, 'pièce'),
 ('Kits hygiène', 'material', 15000.00, 'kit'),
-('Aide financière (espèces)', 'argent', 10000.00, 'Ar'),
+('Aide financière (espèces)', 'argent', 1.00, 'Ar'),
 ('Matériel médical', 'material', 25000.00, 'lot');
+
+INSERT INTO configuration (nom, valeur) VALUES ('FRAIS_ACHAT_PERCENT', '10')
+ON DUPLICATE KEY UPDATE valeur = VALUES(valeur);
 
 -- Fin du fichier

@@ -184,7 +184,6 @@ class Distribution
         $sqlBesoins = "SELECT b.*, ta.categorie, ta.prix_unitaire
                        FROM besoin b
                        JOIN type_articles ta ON b.type_article_id = ta.id
-                       WHERE ta.categorie != 'argent'
                        ORDER BY b.date_demande ASC, b.id ASC";
         $stmtBesoins = $db->query($sqlBesoins);
         $besoins = $stmtBesoins->fetchAll(PDO::FETCH_ASSOC);

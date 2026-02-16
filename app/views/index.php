@@ -85,7 +85,7 @@
     <a href="/achats" class="card">
         <div class="card-icon">🛒</div>
         <h2>Achats</h2>
-        <p>Utiliser les dons en argent pour acheter des besoins nature/matériaux (avec <?php echo FRAIS_ACHAT_PERCENT; ?>% de frais)</p>
+        <p>Utiliser les dons en argent pour acheter des besoins nature/matériaux (avec <?php echo isset($fraisPercent) ? intval($fraisPercent) : 10; ?>% de frais)</p>
     </a>
     <a href="/recap" class="card">
         <div class="card-icon">📊</div>

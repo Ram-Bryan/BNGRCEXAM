@@ -6,7 +6,8 @@ define('DB_PASS', '');
 define('DB_CHARSET', 'utf8mb4');
 
 // Frais d'achat configurable (en pourcentage)
-define('FRAIS_ACHAT_PERCENT', 10);
+// FRAIS_ACHAT_PERCENT is now stored in the configuration table.
+// Use models\Configuration::getValue(Flight::db(), 'FRAIS_ACHAT_PERCENT', 10, 'int') to read it.
 
 $app = Flight::app();
 

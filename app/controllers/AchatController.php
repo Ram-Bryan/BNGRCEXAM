@@ -5,6 +5,7 @@ namespace controllers;
 use models\Achat;
 use models\Besoin;
 use models\Ville;
+use models\Configuration;
 use Flight;
 use PDO;
 
@@ -60,8 +61,8 @@ class AchatController
         // Argent disponible
         $argentDisponible = Achat::getArgentDisponible($this->db);
 
-        // Frais d'achat
-        $fraisPercent = defined('FRAIS_ACHAT_PERCENT') ?  : 10;
+        // Frais d'achat (depuis table configuration)
+        $fraisPercent = Configuration::getValue($this->db, 'FRAIS_ACHAT_PERCENT', 10, 'int');
 
         Flight::render('achat/besoins_restants', [
             'besoins' => $besoins,
@@ -103,7 +104,7 @@ class AchatController
             // Calculer le montant
             $prixUnitaire = (float)$besoinData['prix_unitaire'];
             $montantHt = $quantite * $prixUnitaire;
-            $fraisPercent = defined('FRAIS_ACHAT_PERCENT') ? FRAIS_ACHAT_PERCENT : 10;
+            $fraisPercent = Configuration::getValue($this->db, 'FRAIS_ACHAT_PERCENT', 10, 'int');
             $montantFrais = $montantHt * ($fraisPercent / 100);
             $montantTotal = $montantHt + $montantFrais;
 

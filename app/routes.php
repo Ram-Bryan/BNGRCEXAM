@@ -6,14 +6,11 @@ use controllers\StatsController;
 use controllers\AchatController;
 use controllers\SimulationController;
 use controllers\RecapController;
+use controllers\HomeController;
 
 // ==================== ACCUEIL ====================
-Flight::route('GET /', function () {
-    Flight::render('index');
-});
-Flight::route('GET /index', function () {
-    Flight::render('index');
-});
+Flight::route('GET /', [new HomeController(), 'index']);
+Flight::route('GET /index', [new HomeController(), 'index']);
 
 // ==================== BESOINS ====================
 Flight::route('GET /besoins', [new BesoinController(), 'listBesoins']);
