@@ -161,3 +161,119 @@ LEFT JOIN (
     GROUP BY besoin_id
 ) sub ON sub.besoin_id = b.id
 GROUP BY v.id, v.nom, v.nbsinistres, r.id, r.nom;
+
+-- Vue avec satisfaction incluant aussi les simulations
+-- Utile pour voir la satisfaction projetée pendant la simulation
+
+CREATE OR REPLACE VIEW vue_besoins_satisfaction_avec_simulation AS
+SELECT 
+    b.id,
+    b.ville_id,
+    b.type_article_id,
+    b.quantite AS quantite_demandee,
+    b.date_demande,
+    v.nom AS ville_nom,
+    v.nbsinistres,
+    r.id AS region_id,
+    r.nom AS region_nom,
+    ta.nom AS article_nom,
+    ta.categorie,
+    ta.prix_unitaire,
+    ta.unite,
+    -- Quantité reçue (validée seulement)
+    COALESCE(SUM(CASE WHEN dist.est_simulation = FALSE THEN dist.quantite ELSE 0 END), 0) AS quantite_recue,
+    -- Quantité simulée (inclut aussi les simulations)
+    COALESCE(SUM(dist.quantite), 0) AS quantite_recue_avec_simulation,
+    -- Quantité restante (validée seulement)
+    GREATEST(0, b.quantite - COALESCE(SUM(CASE WHEN dist.est_simulation = FALSE THEN dist.quantite ELSE 0 END), 0)) AS quantite_restante,
+    -- Quantité restante avec simulation
+    GREATEST(0, b.quantite - COALESCE(SUM(dist.quantite), 0)) AS quantite_restante_avec_simulation,
+    -- Ratio de satisfaction (validée seulement)
+    LEAST(100, ROUND(COALESCE(SUM(CASE WHEN dist.est_simulation = FALSE THEN dist.quantite ELSE 0 END), 0) * 100.0 / b.quantite, 2)) AS ratio_satisfaction,
+    -- Ratio de satisfaction avec simulation
+    LEAST(100, ROUND(COALESCE(SUM(dist.quantite), 0) * 100.0 / b.quantite, 2)) AS ratio_satisfaction_avec_simulation
+FROM besoin b
+JOIN ville v ON b.ville_id = v.id
+JOIN region r ON v.idregion = r.id
+JOIN type_articles ta ON b.type_article_id = ta.id
+LEFT JOIN distribution dist ON dist.besoin_id = b.id
+GROUP BY b.id, b.ville_id, b.type_article_id, b.quantite, b.date_demande,
+         v.nom, v.nbsinistres, r.id, r.nom, ta.nom, ta.categorie, ta.prix_unitaire, ta.unite;
+
+
+
+CREATE OR REPLACE VIEW vue_achats_complets AS
+SELECT 
+    a.id,
+    a.besoin_id,
+    a.quantite,
+    a.montant_ht,
+    a.frais_percent,
+    a.montant_frais,
+    a.montant_total,
+    a.date_achat,
+    a.valide,
+    a.date_validation,
+    b.ville_id,
+    b.type_article_id,
+    b.quantite AS quantite_besoin,
+    b.date_demande,
+    v.nom AS ville_nom,
+    r.id AS region_id,
+    r.nom AS region_nom,
+    ta.nom AS article_nom,
+    ta.categorie,
+    ta.prix_unitaire,
+    ta.unite
+FROM achat a
+JOIN besoin b ON a.besoin_id = b.id
+JOIN ville v ON b.ville_id = v.id
+JOIN region r ON v.idregion = r.id
+JOIN type_articles ta ON b.type_article_id = ta.id;
+
+-- Vue des dons en argent disponibles (dons argent - distributions validées)
+CREATE OR REPLACE VIEW vue_argent_disponible AS
+SELECT 
+    COALESCE(SUM(d.quantite * ta.prix_unitaire), 0) AS total_dons_argent,
+    COALESCE((SELECT SUM(montant_total) FROM achat WHERE valide = TRUE), 0) AS total_achats_utilises,
+    COALESCE(SUM(d.quantite * ta.prix_unitaire), 0) - COALESCE((SELECT SUM(montant_total) FROM achat WHERE valide = TRUE), 0) AS argent_disponible
+FROM dons d
+JOIN type_articles ta ON d.type_article_id = ta.id
+WHERE ta.categorie = 'argent';
+
+-- Vue récapitulative des besoins (totaux, satisfaits, restants) - HORS ARGENT
+CREATE OR REPLACE VIEW vue_recapitulatif_besoins AS
+SELECT 
+    COALESCE(SUM(CASE WHEN ta.categorie != 'argent' THEN b.quantite * ta.prix_unitaire ELSE 0 END), 0) AS montant_total_besoins,
+    COALESCE((
+        SELECT SUM(dist.quantite * ta2.prix_unitaire)
+        FROM distribution dist
+        JOIN besoin b2 ON dist.besoin_id = b2.id
+        JOIN type_articles ta2 ON b2.type_article_id = ta2.id
+        WHERE dist.est_simulation = FALSE AND ta2.categorie != 'argent'
+    ), 0) + COALESCE((
+        SELECT SUM(a.quantite * ta3.prix_unitaire)
+        FROM achat a
+        JOIN besoin b3 ON a.besoin_id = b3.id
+        JOIN type_articles ta3 ON b3.type_article_id = ta3.id
+        WHERE a.valide = TRUE
+    ), 0) AS montant_satisfait,
+    COALESCE(SUM(CASE WHEN ta.categorie != 'argent' THEN b.quantite * ta.prix_unitaire ELSE 0 END), 0) - 
+    COALESCE((
+        SELECT SUM(dist.quantite * ta2.prix_unitaire)
+        FROM distribution dist
+        JOIN besoin b2 ON dist.besoin_id = b2.id
+        JOIN type_articles ta2 ON b2.type_article_id = ta2.id
+        WHERE dist.est_simulation = FALSE AND ta2.categorie != 'argent'
+    ), 0) - COALESCE((
+        SELECT SUM(a.quantite * ta3.prix_unitaire)
+        FROM achat a
+        JOIN besoin b3 ON a.besoin_id = b3.id
+        JOIN type_articles ta3 ON b3.type_article_id = ta3.id
+        WHERE a.valide = TRUE
+    ), 0) AS montant_restant,
+    COUNT(CASE WHEN ta.categorie != 'argent' THEN b.id END) AS nombre_besoins,
+    
+    (SELECT argent_disponible FROM vue_argent_disponible) AS argent_disponible
+FROM besoin b
+JOIN type_articles ta ON b.type_article_id = ta.id;

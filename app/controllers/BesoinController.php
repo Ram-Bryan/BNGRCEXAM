@@ -45,15 +45,15 @@ class BesoinController
 
         try {
             $besoin = new Besoin();
-            $besoin->setVilleId($ville_id)
-                   ->setTypeArticleId($type_article_id)
-                   ->setQuantite($quantite)
+            $besoin->setVilleId((int)$ville_id)
+                   ->setTypeArticleId((int)$type_article_id)
+                   ->setQuantite((float)$quantite)
                    ->setDateDemande($date_demande);
             
             if ($besoin->create($this->db)) {
                 $historique = new HistoriqueBesoin();
                 $historique->setBesoinId($besoin->getId())
-                          ->setQuantite($quantite);
+                          ->setQuantite((float)$quantite);
                 $historique->create($this->db);
                 
                 Flight::redirect('/besoins?success=created');
@@ -109,12 +109,12 @@ class BesoinController
                 return;
             }
             
-            $besoin->setQuantite($quantite);
+            $besoin->setQuantite((float)$quantite);
             
             if ($besoin->updateQuantite($this->db)) {
                 $historique = new HistoriqueBesoin();
-                $historique->setBesoinId($id)
-                          ->setQuantite($quantite);
+                $historique->setBesoinId((int)$id)
+                          ->setQuantite((float)$quantite);
                 $historique->create($this->db);
                 
                 Flight::redirect('/besoins?success=updated');

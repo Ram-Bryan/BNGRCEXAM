@@ -57,3 +57,17 @@ CREATE TABLE historique_besoin (
     date_enregistrement DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (besoin_id) REFERENCES besoin(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS achat (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    besoin_id INT NOT NULL,
+    quantite INT NOT NULL,
+    montant_ht DECIMAL(15, 2) NOT NULL,
+    frais_percent DECIMAL(5, 2) NOT NULL,
+    montant_frais DECIMAL(15, 2) NOT NULL,
+    montant_total DECIMAL(15, 2) NOT NULL,
+    date_achat DATE NOT NULL,
+    valide BOOLEAN DEFAULT FALSE,
+    date_validation DATETIME NULL,
+    FOREIGN KEY (besoin_id) REFERENCES besoin(id) ON DELETE CASCADE
+);

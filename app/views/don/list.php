@@ -213,8 +213,8 @@
     $totalDisponible = 0;
     $totalDistribue = 0;
     foreach ($dons as $don) {
-        $disponible = $don->quantite_disponible ?? ($don->quantite - ($don->quantite_distribuee ?? 0));
-        $distribue = $don->quantite_distribuee ?? 0;
+        $disponible = $don['quantite_disponible'] ?? ($don['quantite'] - ($don['quantite_distribuee'] ?? 0));
+        $distribue = $don['quantite_distribuee'] ?? 0;
         $totalDisponible += $disponible;
         $totalDistribue += $distribue;
     }
@@ -258,21 +258,21 @@
             <tbody>
                 <?php foreach ($dons as $don): ?>
                     <?php
-                    $disponible = $don->quantite_disponible ?? ($don->quantite - ($don->quantite_distribuee ?? 0));
-                    $distribue = $don->quantite_distribuee ?? 0;
+                    $disponible = $don['quantite_disponible'] ?? ($don['quantite'] - ($don['quantite_distribuee'] ?? 0));
+                    $distribue = $don['quantite_distribuee'] ?? 0;
                     ?>
                     <tr>
-                        <td><strong>#<?php echo $don->id; ?></strong></td>
-                        <td><?php echo isset($don->date_don) ? date('d/m/Y', strtotime($don->date_don)) : '-'; ?></td>
-                        <td><?php echo htmlspecialchars($don->donateur ?? 'Anonyme'); ?></td>
-                        <td><?php echo htmlspecialchars($don->article_nom ?? '-'); ?></td>
+                        <td><strong>#<?php echo $don['id']; ?></strong></td>
+                        <td><?php echo isset($don['date_don']) ? date('d/m/Y', strtotime($don['date_don'])) : '-'; ?></td>
+                        <td><?php echo htmlspecialchars($don['donateur'] ?? 'Anonyme'); ?></td>
+                        <td><?php echo htmlspecialchars($don['article_nom'] ?? '-'); ?></td>
                         <td>
-                            <?php $cat = $don->categorie ?? 'nature'; ?>
+                            <?php $cat = $don['categorie'] ?? 'nature'; ?>
                             <span class="badge badge-<?php echo $cat; ?>">
                                 <?php echo ucfirst($cat); ?>
                             </span>
                         </td>
-                        <td><strong><?php echo number_format($don->quantite); ?></strong> <?php echo htmlspecialchars($don->unite ?? ''); ?></td>
+                        <td><strong><?php echo number_format($don['quantite']); ?></strong> <?php echo htmlspecialchars($don['unite'] ?? ''); ?></td>
                         <td>
                             <?php if ($disponible > 0): ?>
                                 <strong style="color: #17a2b8;"><?php echo number_format($disponible); ?></strong>
@@ -288,8 +288,8 @@
                             <?php endif; ?>
                         </td>
                         <td>
-                            <?php if ($disponible == $don->quantite): ?>
-                                <form method="POST" action="/dons/<?php echo $don->id; ?>/delete" style="display:inline;" onsubmit="return confirm('Supprimer ce don ?');">
+                            <?php if ($disponible == $don['quantite']): ?>
+                                <form method="POST" action="/dons/<?php echo $don['id']; ?>/delete" style="display:inline;" onsubmit="return confirm('Supprimer ce don ?');">
                                     <button type="submit" class="btn-small btn-danger">🗑️</button>
                                 </form>
                             <?php else: ?>

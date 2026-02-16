@@ -1,0 +1,13 @@
+- listes des dons ne se montrent pas 
+- ne pas avoir dans Controllers les sql, utiliser des methodes dans les models pour ca
+- ne pas utiliser des includes: <?php include __DIR__ . '/../includes/header.php'; ?> comme ca mais utiliser les base url comme je le decrit plus bas
+- unifer les assets dans public/assets/css ou js (js fait des appel AJAX)
+- utiliser les Flight:get base url comme suit: 
+<?php $baseurl = Flight::get('flight.base_url'); ?>
+et    <link rel="stylesheet" type="text/css" href="<?php echo $baseurl; ?>/assets/css/bootstrap.min.css">
+- pouruqoi quand je vais dans http://localhost:1234/achats/besoins?ville_id=2 par exemple il dit argent insuffisant disponible 0Ar
+- actaliser simulation pour voir aussi la satisfaction actualise quand on fait une simulation.
+
+- tableu configuration ou tu mettra FRAIS_ACHAT_PERCENT a l'interieur 
+- quand je fais une demande de besoin d'argent, l'input qt ne doit pas se montrer (js dynamic)
+- pouruqoi je ne peux pas simuler ou distribuer l'argent ?

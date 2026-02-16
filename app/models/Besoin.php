@@ -159,4 +159,39 @@ class Besoin
         $stmt = $db->prepare($sql);
         return $stmt->execute([':id' => $this->id]);
     }
+
+    /**
+     * Récupérer les besoins restants de catégorie nature ou material pour les achats
+     * Filtre optionnel par ville
+     */
+    public static function findBesoinsRestantsAchats(PDO $db, ?int $ville_id = null): array
+    {
+        $sql = "SELECT * FROM vue_besoins_satisfaction 
+                WHERE quantite_restante > 0 AND categorie IN ('nature', 'material')";
+        if ($ville_id) {
+            $sql .= " AND ville_id = :ville_id";
+        }
+        $sql .= " ORDER BY date_demande ASC";
+
+        $stmt = $db->prepare($sql);
+        if ($ville_id) {
+            $stmt->execute([':ville_id' => $ville_id]);
+        } else {
+            $stmt->execute();
+        }
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Récupérer les besoins avec satisfaction incluant les simulations
+     * Utile pour afficher la satisfaction projetée pendant la simulation
+     */
+    public static function findBesoinsAvecSimulation(PDO $db): array
+    {
+        $sql = "SELECT * FROM vue_besoins_satisfaction_avec_simulation 
+                WHERE quantite_restante_avec_simulation > 0 
+                ORDER BY date_demande ASC";
+        $stmt = $db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

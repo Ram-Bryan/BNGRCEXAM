@@ -425,13 +425,20 @@
                         <td><strong><?php echo number_format($besoin['quantite_restante']); ?></strong></td>
                         <td style="width: 150px;">
                             <?php
-                            $ratio = $besoin['ratio_satisfaction'];
+                            // Si simulation en cours, afficher le ratio projeté, sinon le ratio actuel
+                            if (isset($hasSimulation) && $hasSimulation && isset($besoin['ratio_satisfaction_avec_simulation'])) {
+                                $ratio = $besoin['ratio_satisfaction_avec_simulation'];
+                                $isProjected = true;
+                            } else {
+                                $ratio = $besoin['ratio_satisfaction'];
+                                $isProjected = false;
+                            }
                             $class = $ratio >= 100 ? 'progress-complete' : ($ratio >= 50 ? 'progress-partial' : 'progress-low');
                             $width = min($ratio, 100);
                             ?>
                             <div class="progress-bar-container">
                                 <div class="progress-bar <?php echo $class; ?>" style="width: <?php echo $width; ?>%">
-                                    <?php echo number_format($ratio, 1); ?>%
+                                    <?php echo number_format($ratio, 1); ?>%<?php if ($isProjected): ?> 📊<?php endif; ?>
                                 </div>
                             </div>
                         </td>
@@ -494,6 +501,7 @@
 
                 if (data.success) {
                     alert('✅ ' + data.message + '\n\nVérifiez les attributions et cliquez sur DISTRIBUER pour valider.');
+                    // Recharger pour afficher la satisfaction actualisée
                     location.reload();
                 } else {
                     alert('⚠️ ' + data.message);
@@ -526,6 +534,7 @@
 
                 if (data.success) {
                     alert('✅ ' + data.message);
+                    // Recharger pour afficher la satisfaction mise à jour
                     location.reload();
                 } else {
                     alert('❌ Erreur: ' + data.message);
@@ -550,6 +559,7 @@
             .then(data => {
                 if (data.success) {
                     alert('✅ Simulation annulée');
+                    // Recharger pour afficher la satisfaction actualisée
                     location.reload();
                 } else {
                     alert('❌ Erreur: ' + data.message);

@@ -52,20 +52,7 @@ class AchatController
         $ville_id = Flight::request()->query->ville_id ?? null;
 
         // Besoins non satisfaits de catégorie nature ou material
-        $sql = "SELECT * FROM vue_besoins_satisfaction 
-                WHERE quantite_restante > 0 AND categorie IN ('nature', 'material')";
-        if ($ville_id) {
-            $sql .= " AND ville_id = :ville_id";
-        }
-        $sql .= " ORDER BY date_demande ASC";
-
-        $stmt = $this->db->prepare($sql);
-        if ($ville_id) {
-            $stmt->execute([':ville_id' => $ville_id]);
-        } else {
-            $stmt->execute();
-        }
-        $besoins = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $besoins = Besoin::findBesoinsRestantsAchats($this->db, $ville_id ? (int)$ville_id : null);
 
         // Villes pour filtre
         $villes = Ville::findAllComplete($this->db);
@@ -74,7 +61,7 @@ class AchatController
         $argentDisponible = Achat::getArgentDisponible($this->db);
 
         // Frais d'achat
-        $fraisPercent = defined('FRAIS_ACHAT_PERCENT') ? FRAIS_ACHAT_PERCENT : 10;
+        $fraisPercent = defined('FRAIS_ACHAT_PERCENT') ?  : 10;
 
         Flight::render('achat/besoins_restants', [
             'besoins' => $besoins,

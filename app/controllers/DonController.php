@@ -52,8 +52,8 @@ class DonController
 
         try {
             $don = new Don();
-            $don->setTypeArticleId($type_article_id)
-                ->setQuantite($quantite)
+            $don->setTypeArticleId((int)$type_article_id)
+                ->setQuantite((int)$quantite)
                 ->setDateDon($date_don)
                 ->setDonateur($donateur ?: 'Anonyme')
                 ->setStatut('disponible');

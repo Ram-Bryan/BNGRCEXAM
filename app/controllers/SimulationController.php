@@ -23,14 +23,20 @@ class SimulationController
      */
     public function showSimulation()
     {
-        // Besoins non satisfaits
-        $besoinsData = Besoin::findBesoinsNonSatisfaits($this->db);
+        // Vérifier s'il y a des simulations en cours
+        $simulationsData = Distribution::findSimulations($this->db);
+        $hasSimulation = !empty($simulationsData);
+
+        // Si simulation en cours, utiliser la vue avec simulation pour voir la projection
+        // Sinon utiliser la vue standard
+        if ($hasSimulation) {
+            $besoinsData = Besoin::findBesoinsAvecSimulation($this->db);
+        } else {
+            $besoinsData = Besoin::findBesoinsNonSatisfaits($this->db);
+        }
 
         // Dons disponibles
         $donsData = Don::findAllDisponibles($this->db);
-
-        // Distributions en simulation
-        $simulationsData = Distribution::findSimulations($this->db);
 
         // Distributions validées
         $distribueesData = Distribution::findValidees($this->db);
@@ -43,7 +49,8 @@ class SimulationController
             'dons' => $donsData,
             'simulations' => $simulationsData,
             'distribuees' => $distribueesData,
-            'resume' => $resumeSimulation
+            'resume' => $resumeSimulation,
+            'hasSimulation' => $hasSimulation
         ]);
     }
 
