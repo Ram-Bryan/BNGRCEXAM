@@ -27,3 +27,22 @@ dons:
     - quantite
     - date livrison
 
+dispatches
+├── id (PK)
+├── don_id (FK)
+├── besoin_id (FK)
+├── ville_id (FK)
+├── quantite_attribuee (DECIMAL(10,2))
+├── montant_attribue (DECIMAL(10,2)) nullable
+├── date_dispatch
+├── ordre_traitement (pour respecter la chronologie)
+├── statut (planifié/en_cours/livré/annulé)
+└── created_at
+
+Faire liste:
+    - Faire Acceuil:
+    - Faire page Formulaire de demande besoins:
+        - 
+
+    
+    - Faire Liste
