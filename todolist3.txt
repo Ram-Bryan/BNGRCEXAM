@@ -1,0 +1,407 @@
+═══════════════════════════════════════════════════════════════════
+TODOLIST - MODULE ACHATS - RECONSTRUCTION COMPLÈTE
+═══════════════════════════════════════════════════════════════════
+
+📋 PHASE 1 : BASE DE DONNÉES (Estimation: 12min)
+───────────────────────────────────────────────────────────────────
+
+1.1 Créer la table `bngrc_achat`
+    □ Colonnes : id (PK AUTO_INCREMENT), besoin_id (FK)
+    □ Colonnes : quantite (INT), montant_ht (DECIMAL 15,2)
+    □ Colonnes : frais_percent (INT), montant_frais (DECIMAL 15,2)
+    □ Colonnes : montant_total (DECIMAL 15,2), date_achat (DATE)
+    □ Colonnes : valide (BOOLEAN DEFAULT FALSE)
+    □ Index : INDEX(besoin_id), INDEX(date_achat), INDEX(valide)
+    ⏱ Temps estimé : 5 min
+    ✓ État initial : table vide, 0 ligne
+
+1.2 Créer la vue `v_bngrc_achats_complets`
+    □ SELECT a.*, b.type_article_id
+    □ ta.nom AS article_nom, ta.categorie, ta.prix_unitaire, ta.unite
+    □ b.quantite AS besoin_quantite, b.ville_id
+    □ v.nom AS ville_nom, r.nom AS region_nom
+    □ FROM bngrc_achat a
+    □ JOIN bngrc_besoin b ON a.besoin_id = b.id
+    □ JOIN bngrc_type_articles ta ON b.type_article_id = ta.id
+    □ JOIN bngrc_villes v ON b.ville_id = v.id
+    □ JOIN bngrc_regions r ON v.region_id = r.id
+    ⏱ Temps estimé : 5 min
+    ✓ État initial : vue vide car table achats vide
+
+1.3 Créer la vue `v_bngrc_argent_disponible`
+    □ SELECT 
+        COALESCE(SUM(d.quantite), 0) AS total_dons_argent,
+        COALESCE(SUM(CASE WHEN a.valide = TRUE THEN a.montant_total ELSE 0 END), 0) AS total_achats_valides,
+        (total_dons_argent - total_achats_valides) AS argent_disponible
+    □ FROM bngrc_dons d
+    □ JOIN bngrc_type_articles ta ON d.type_article_id = ta.id
+    □ LEFT JOIN bngrc_achat a ON 1=1
+    □ WHERE ta.categorie = 'argent'
+    ⏱ Temps estimé : 2 min
+    ✓ État initial : total_dons_argent > 0 si dons existent, achats = 0
+
+
+📋 PHASE 2 : MODÈLES (Estimation: 20min)
+───────────────────────────────────────────────────────────────────
+
+2.1 Créer Achat.php (app/models/)
+    □ Namespace models, use PDO
+    □ Properties PRIVÉES : id, besoin_id, quantite, montant_ht, frais_percent
+    □ Properties PRIVÉES : montant_frais, montant_total, date_achat, valide
+    □ Constructor vide : public function __construct() {}
+    ⏱ Temps estimé : 2 min
+    ✓ État initial : classe vide, aucun achat en DB
+
+2.2 Getters Achat.php
+    □ getId(): ?int
+    □ getBesoinId(): ?int
+    □ getQuantite(): ?int
+    □ getMontantHt(): ?float
+    □ getFraisPercent(): ?int
+    □ getMontantFrais(): ?float
+    □ getMontantTotal(): ?float
+    □ getDateAchat(): ?string
+    □ isValide(): bool (ou getValide)
+    ⏱ Temps estimé : 2 min
+
+2.3 Setters Achat.php (fluent interface)
+    □ setId(?int $id): self { $this->id = $id; return $this; }
+    □ setBesoinId(?int $besoin_id): self
+    □ setQuantite(?int $quantite): self
+    □ setMontantHt(?float $montant_ht): self
+    □ setFraisPercent(?int $frais_percent): self
+    □ setMontantFrais(?float $montant_frais): self
+    □ setMontantTotal(?float $montant_total): self
+    □ setDateAchat(?string $date_achat): self
+    □ setValide(bool $valide): self
+    ⏱ Temps estimé : 3 min
+
+2.4 Méthodes CRUD Achat.php
+    □ create(PDO $db): bool - INSERT avec prepared statement
+    □ findById(PDO $db, int $id): ?Achat - SELECT avec setters
+    □ findAll(PDO $db): array - SELECT * FROM v_bngrc_achats_complets
+    □ findAllByVille(PDO $db, int $ville_id): array
+    □ findNonValides(PDO $db): array - WHERE valide = FALSE (alias findEnAttente)
+    □ findEnAttente(PDO $db): array - alias de findNonValides
+    □ delete(PDO $db): bool - DELETE FROM bngrc_achat WHERE id (seulement si non validé)
+    ⏱ Temps estimé : 7 min
+    ✓ État initial DB : 0 achats après findAll()
+
+2.5 Méthodes métier Achat.php
+    □ static getArgentDisponible(PDO $db): float - SELECT argent_disponible FROM v_bngrc_argent_disponible
+    □ static existeAchatNonValide(PDO $db, int $besoin_id): bool - COUNT achats non validés pour ce besoin
+    □ static validerTous(PDO $db): bool - UPDATE bngrc_achat SET valide = TRUE WHERE valide = FALSE
+    □ static validerTous(PDO $db): bool - AUSSI créer don + distribution pour chaque achat validé
+    □ static annulerSimulation(PDO $db): bool - DELETE FROM bngrc_achat WHERE valide = FALSE
+    ⏱ Temps estimé : 6 min
+    ✓ Validation : achats en attente → créer dons matériels + distributions
+
+
+📋 PHASE 3 : DTO (Estimation: 10min)
+───────────────────────────────────────────────────────────────────
+
+3.1 Créer DTOAchat.php (app/dto/)
+    □ Namespace dto
+    □ Properties PRIVÉES : id, besoin_id, quantite, montant_ht, frais_percent
+    □ Properties PRIVÉES : montant_frais, montant_total, date_achat, valide
+    □ Properties PRIVÉES : article_nom, categorie, prix_unitaire, unite
+    □ Properties PRIVÉES : ville_nom, region_nom, besoin_quantite
+    □ Constructor vide
+    ⏱ Temps estimé : 3 min
+    ✓ État initial : aucun DTO, DB vide
+
+3.2 Getters/Setters DTOAchat.php
+    □ 16 getters : getId(), getBesoinId(), getQuantite(), getMontantHt(), etc.
+    □ 16 setters avec fluent interface : setId(?int $id): self
+    ⏱ Temps estimé : 4 min
+
+3.3 Méthodes statiques et helpers DTOAchat
+    □ static fromArray(array $data): DTOAchat - utiliser setters (chaînage)
+    □ static fromArrayMultiple(array $dataArray): array
+    □ getDateFormatee(): string - date('d/m/Y', strtotime())
+    □ getMontantHtFormate(): string - number_format($this->montant_ht, 0, '', ' ') . ' Ar'
+    □ getMontantFraisFormate(): string
+    □ getMontantTotalFormate(): string
+    □ getStatutBadge(): string - isValide() ? 'Validé' : 'En attente'
+    □ getStatutClass(): string - isValide() ? 'badge-success' : 'badge-warning'
+    □ getCategorieClass(): string - match categorie
+    □ isPeutSupprimer(): bool - !$this->valide
+    ⏱ Temps estimé : 3 min
+
+
+📋 PHASE 4 : CONTRÔLEUR (Estimation: 25min)
+───────────────────────────────────────────────────────────────────
+
+4.1 Créer AchatController.php (app/controllers/)
+    □ Namespace controllers
+    □ use models\Achat, models\Besoin, models\Ville, models\Configuration
+    □ use Flight, PDO, dto\DTOAchat
+    □ TOUS LES MÉTHODES STATIC : public static function
+    □ Pas de constructor, pas de $this->db
+    □ Utiliser Flight::db() dans chaque méthode
+    ⏱ Temps estimé : 2 min
+    ✓ État initial : aucun controller, pas de routes
+
+4.2 Méthode listAchats()
+    □ public static function listAchats(): void
+    □ $db = Flight::db()
+    □ $ville_id = Flight::request()->query->ville_id ?? null
+    □ if ($ville_id) { $achats = Achat::findAllByVille($db, (int)$ville_id); }
+    □ else { $achats = Achat::findAll($db); }
+    □ $villes = Ville::findAllComplete($db) - pour filtre
+    □ $argentDisponible = Achat::getArgentDisponible($db)
+    □ $achatsEnAttente = Achat::findEnAttente($db)
+    □ $fraisPercent = Configuration::getValueAs($db, 'FRAIS_ACHAT_PERCENT', 'int', 10)
+    □ Calculer stats backend : $totalAchats = count($achats)
+    □ Boucle foreach : $totalMontant += $achat['montant_total']
+    □ Flight::render('achat/list', ['achats' => $achats, 'villes' => $villes, ...])
+    ⏱ Temps estimé : 5 min
+    ✓ État initial : affichera 0 achats (DB vide)
+
+4.3 Méthode showBesoinsRestants()
+    □ public static function showBesoinsRestants(): void
+    □ $db = Flight::db()
+    □ $ville_id = Flight::request()->query->ville_id ?? null
+    □ $besoins = Besoin::findBesoinsRestantsAchats($db, $ville_id)
+    □ Boucle foreach : calculer $besoin['montant_restant'] = quantite_restante * prix_unitaire
+    □ $villes = Ville::findAllComplete($db)
+    □ $argentDisponible = Achat::getArgentDisponible($db)
+    □ $fraisPercent = Configuration::getValueAs($db, 'FRAIS_ACHAT_PERCENT', 'int', 10)
+    □ Flight::render('achat/besoins_restants', ['besoins' => $besoins, ...])
+    ⏱ Temps estimé : 5 min
+
+4.4 Méthode create()
+    □ public static function create(): void
+    □ $db = Flight::db()
+    □ $request = Flight::request()
+    □ Extraire : besoin_id, quantite
+    □ try { Vérifier existeAchatNonValide() → redirect avec message erreur }
+    □ $besoinData = Besoin::findCompleteById($db, besoin_id)
+    □ Vérifier categorie != 'argent' → redirect erreur
+    □ Calculer : montantHt = quantite * prix_unitaire
+    □ Récupérer fraisPercent de Configuration
+    □ Calculer : montantFrais = montantHt * (frais_percent / 100)
+    □ Calculer : montantTotal = montantHt + montantFrais
+    □ Vérifier argentDisponible >= montantTotal → sinon redirect erreur
+    □ Créer Achat avec setters (fluent interface), valide = FALSE
+    □ if ($achat->create($db)) { redirect success } else { redirect error }
+    □ catch { redirect error }
+    ⏱ Temps estimé : 7 min
+    ✓ Création : DB passe de 0 à 1 ligne (en attente)
+
+4.5 Méthode validerTous()
+    □ public static function validerTous(): void
+    □ $db = Flight::db()
+    □ try { if (Achat::validerTous($db)) { redirect success } else { redirect error } }
+    □ catch { redirect error }
+    ⏱ Temps estimé : 2 min
+    ✓ Validation : achats en attente → validés + dons créés + distributions créées
+
+4.6 Méthode annulerSimulation()
+    □ public static function annulerSimulation(): void
+    □ $db = Flight::db()
+    □ try { if (Achat::annulerSimulation($db)) { redirect success } else { redirect error } }
+    □ catch { redirect error }
+    ⏱ Temps estimé : 2 min
+
+4.7 Méthode delete($id)
+    □ public static function delete($id): void
+    □ $db = Flight::db()
+    □ $achat = Achat::findById($db, (int)$id)
+    □ if (!$achat) { redirect error not_found }
+    □ if ($achat->isValide()) { redirect error 'Impossible de supprimer un achat validé' }
+    □ if ($achat->delete($db)) { redirect success } else { redirect error }
+    □ catch { redirect error }
+    ⏱ Temps estimé : 2 min
+
+
+📋 PHASE 5 : VUES (Estimation: 22min)
+───────────────────────────────────────────────────────────────────
+
+5.1 Créer besoins_restants.php (app/views/achat/)
+    □ <?php include header, link CSS achats.css
+    □ H1 : 🛒 Créer des Achats
+    □ Div message unifié : <?php if (!empty($message)): ?>
+    □ Info-box argent disponible : afficher $argentDisponible formaté
+    □ Info-box frais : "Frais d'achat : <?php echo $fraisPercent; ?>%"
+    □ Filtre ville : form GET avec select villes + bouton Filtrer
+    □ Empty state si empty($besoins) : "Aucun besoin restant à acheter"
+    □ Table avec thead : ID, Ville, Région, Article, Catégorie, Prix Unit., Qté Restante, Montant Restant, Actions
+    □ Tbody foreach $besoins : afficher toutes les colonnes
+    □ Calculer montant avec frais : montantAvecFrais = montant_restant * (1 + frais_percent/100)
+    □ Form POST /achats/create : input hidden besoin_id
+    □ Input quantite (type=number, required, min=1, max=quantite_restante)
+    □ Button submit "Acheter" (avec icône 🛒)
+    ⏱ Temps estimé : 8 min
+    ✓ État initial : affiche besoins non satisfaits catégorie nature/material
+
+5.2 Créer list.php (app/views/achat/)
+    □ <?php include header, link CSS achats.css
+    □ Header : H1 + boutons (Créer achats, Liste besoins)
+    □ Div message unifié : <?php if (!empty($message)): ?>
+    □ Info-cards avec statistiques backend : argent disponible, total achats en attente, nombre achats
+    □ Boutons actions globales si achatsEnAttente :
+        - Form POST /achats/valider : button "Valider tous les achats" (confirm JS)
+        - Form POST /achats/annuler : button "Annuler la simulation" (confirm JS)
+    □ Filtre ville : form GET avec select villes + bouton Filtrer
+    □ Empty state si empty($achats) : "Aucun achat enregistré"
+    □ Table avec thead : ID, Date, Ville, Article, Catégorie, Quantité, Montant HT, Frais (%), Montant Frais, Montant Total, Statut, Actions
+    □ Tbody foreach $achats : afficher toutes colonnes formatées
+    □ Badge statut : valide ? 'Validé' (vert) : 'En attente' (orange)
+    □ Badge categorie : badge-<?php echo $achat['categorie']; ?>
+    □ Actions : si !valide → form delete avec confirm
+    □ Sinon : span "Validé" (non supprimable)
+    ⏱ Temps estimé : 10 min
+    ✓ État initial : empty state visible, 0 ligne table
+
+5.3 CSS achats.css
+    □ .badge-warning { background: #ffc107; color: #333; }
+    □ .badge-success { background: #28a745; }
+    □ .badge-danger { background: #dc3545; }
+    □ .badge-nature, .badge-argent, .badge-material
+    □ .info-cards, .info-card (blue pour argent, orange pour attente, grey pour total)
+    □ .empty-state, .btn, .btn-primary, .btn-success, .btn-danger
+    □ .actions-globales { margin: 20px 0; display: flex; gap: 10px; }
+    ⏱ Temps estimé : 4 min
+
+
+📋 PHASE 6 : ROUTES (Estimation: 3min)
+───────────────────────────────────────────────────────────────────
+
+6.1 Déclarer routes achats (app/routes.php)
+    □ use controllers\AchatController
+    □ Flight::route('GET /achats', [AchatController::class, 'listAchats'])
+    □ Flight::route('GET /achats/besoins', [AchatController::class, 'showBesoinsRestants'])
+    □ Flight::route('POST /achats/create', [AchatController::class, 'create'])
+    □ Flight::route('POST /achats/valider', [AchatController::class, 'validerTous'])
+    □ Flight::route('POST /achats/annuler', [AchatController::class, 'annulerSimulation'])
+    □ Flight::route('POST /achats/@id/delete', [AchatController::class, 'delete'])
+    ⏱ Temps estimé : 3 min
+    ✓ État initial : routes non déclarées
+
+
+📋 PHASE 7 : INTÉGRATION MENU (Estimation: 2min)
+───────────────────────────────────────────────────────────────────
+
+7.1 Ajouter lien Achats dans header.php
+    □ Ouvrir app/views/includes/header.php
+    □ Ajouter <a href="<?php echo $baseurl; ?>/achats" class="<?php echo $active == 'achats' ? 'active' : ''; ?>">
+        🛒 Achats
+      </a>
+    □ Entre Dons et Simulation
+    ⏱ Temps estimé : 2 min
+
+
+═══════════════════════════════════════════════════════════════════
+RÉSUMÉ ÉTAT INITIAL
+═══════════════════════════════════════════════════════════════════
+
+✓ Base de données : Table bngrc_achat VIDE (0 ligne)
+✓ Vue v_bngrc_achats_complets : VIDE car table source vide
+✓ Vue v_bngrc_argent_disponible : montre argent total (si dons argent existent)
+✓ Model Achat.php : findAll() retourne array vide []
+✓ DTO DTOAchat : fromArrayMultiple([]) retourne []
+✓ Controller : listAchats() affichera empty state
+✓ Vue list.php : affiche "Aucun achat enregistré" + bouton Créer achats
+✓ Vue besoins_restants.php : affiche besoins non satisfaits (catégorie nature/material)
+✓ Après create() : DB passe de 0 à 1 ligne (en attente), list affiche 1 achat
+
+═══════════════════════════════════════════════════════════════════
+FONCTIONNALITÉS CLÉS
+═══════════════════════════════════════════════════════════════════
+
+1. Créer un achat (simulation)
+   □ Page besoins_restants : liste des besoins non satisfaits (catégorie nature/material uniquement)
+   □ Filtre par ville optionnel
+   □ Pour chaque besoin : form avec input quantite (max = quantite_restante)
+   □ Calcul automatique : montantHt = quantite * prix_unitaire
+   □ Calcul automatique : montantFrais = montantHt * (frais_percent / 100) [depuis Configuration]
+   □ Calcul automatique : montantTotal = montantHt + montantFrais
+   □ Validations backend :
+       - Vérifier qu'aucun achat non validé n'existe déjà pour ce besoin
+       - Vérifier categorie != 'argent' (pas d'achat d'argent)
+       - Vérifier argent_disponible >= montantTotal
+   □ INSERT avec valide = FALSE (simulation)
+   □ Redirect /achats avec message succès/erreur
+   ✓ Évolution DB : 0 → 1 → 2 → ... achats en attente
+
+2. Liste des achats
+   □ Affichage vide si DB = 0 achats
+   □ Table complète avec toutes infos (v_bngrc_achats_complets)
+   □ Filtre par ville optionnel
+   □ Statistiques calculées backend : argent disponible, total achats en attente, total achats
+   □ Badge catégorie (nature/material uniquement en principe)
+   □ Badge statut : "En attente" (orange) ou "Validé" (vert)
+   □ Actions conditionnelles : supprimer si non validé
+
+3. Valider tous les achats
+   □ Bouton global "Valider tous les achats" (avec confirm JS)
+   □ Disponible seulement si achatsEnAttente non vide
+   □ Backend : UPDATE bngrc_achat SET valide = TRUE WHERE valide = FALSE
+   □ Backend : pour chaque achat validé :
+       - Créer un don matériel : INSERT INTO bngrc_dons (type_article_id, quantite, date_don, donateur)
+       - Créer une distribution : INSERT INTO bngrc_distribution (don_id, besoin_id, quantite, date_distribution, est_simulation=FALSE)
+   □ Permet de satisfaire automatiquement les besoins achetés
+   □ Message succès/erreur
+   ✓ Évolution : achats en attente → achats validés + dons créés + distributions créées
+
+4. Annuler la simulation
+   □ Bouton global "Annuler la simulation" (avec confirm JS)
+   □ Disponible seulement si achatsEnAttente non vide
+   □ Backend : DELETE FROM bngrc_achat WHERE valide = FALSE
+   □ Message succès
+   ✓ Évolution : tous les achats en attente supprimés
+
+5. Supprimer un achat
+   □ Action individuelle : form delete avec confirm JS
+   □ Disponible seulement si achat non validé
+   □ Vérification backend : achat existe + !valide
+   □ DELETE FROM bngrc_achat WHERE id
+   □ Message succès/erreur
+   ✓ Évolution DB : N achats → N-1 achats
+
+6. Gestion argent disponible
+   □ Vue v_bngrc_argent_disponible : calcul global
+   □ total_dons_argent = SUM(dons catégorie argent)
+   □ total_achats_valides = SUM(achats validés)
+   □ argent_disponible = total_dons_argent - total_achats_valides
+   □ Affichage dans toutes les pages achats (info-card)
+   □ Validation avant création : montantTotal <= argent_disponible
+
+7. Intégration avec besoins et distributions
+   □ Achat créé pour un besoin → flag ce besoin (éviter doublons)
+   □ Achat validé → créer don + distribution → satisfaire besoin automatiquement
+   □ Vue besoins_restants : calculer montant_restant par besoin
+   □ Afficher frais en temps réel : montant_avec_frais visible avant création
+
+8. Messages utilisateur
+   □ Jamais de message dans URL params (ou minimaliste : ?success=created)
+   □ Toujours redirect avec paramètre simple
+   □ Affichage message unifié dans vues : <?php if (isset($_GET['success'])): ?>
+   □ Messages clairs : "Achat créé", "Tous les achats validés", "Simulation annulée", etc.
+
+═══════════════════════════════════════════════════════════════════
+DURÉE TOTALE ESTIMÉE : 1h34 (94 minutes)
+═══════════════════════════════════════════════════════════════════
+
+BÉNÉFICES :
+✓ Cohérence architecturale : Achats suit pattern Besoins et Dons
+✓ Encapsulation complète : DTOAchat avec getters/setters
+✓ Séparation responsabilités : logique backend, affichage frontend
+✓ Gestion argent centralisée : vue v_bngrc_argent_disponible
+✓ Simulation achats : créer/valider/annuler en batch
+✓ Intégration automatique : achats validés → dons + distributions
+✓ UX claire : statistiques calculées, badges visuels, confirmations JS
+✓ Testabilité : méthodes statiques, PDO injectable
+
+CONTRAINTES MÉTIER :
+✓ Achats uniquement pour catégories nature/material (pas argent)
+✓ Un seul achat en attente par besoin à la fois
+✓ Validation globale : tous les achats en attente validés ensemble
+✓ Création don + distribution automatique lors de la validation
+✓ Argent disponible : bloque création si insuffisant
+✓ Frais d'achat : pourcentage configurable (table Configuration)
+
+═══════════════════════════════════════════════════════════════════
+FIN DE LA TODOLIST MODULE ACHATS
+═══════════════════════════════════════════════════════════════════

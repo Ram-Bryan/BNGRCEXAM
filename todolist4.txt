@@ -1,0 +1,435 @@
+═══════════════════════════════════════════════════════════════════
+TODOLIST - MODULE SIMULATION & DISTRIBUTION - RECONSTRUCTION COMPLÈTE
+═══════════════════════════════════════════════════════════════════
+
+📋 PHASE 1 : BASE DE DONNÉES (Estimation: 15min)
+───────────────────────────────────────────────────────────────────
+
+1.1 Créer la table `bngrc_distribution`
+    □ Colonnes : id (PK AUTO_INCREMENT), don_id (FK), besoin_id (FK)
+    □ Colonnes : quantite (INT), date_distribution (DATE)
+    □ Colonnes : est_simulation (BOOLEAN DEFAULT TRUE)
+    □ Index : INDEX(don_id), INDEX(besoin_id), INDEX(date_distribution), INDEX(est_simulation)
+    □ Constraint FK : FOREIGN KEY(don_id) REFERENCES bngrc_dons(id)
+    □ Constraint FK : FOREIGN KEY(besoin_id) REFERENCES bngrc_besoin(id)
+    ⏱ Temps estimé : 5 min
+    ✓ État initial : table vide, 0 ligne
+
+1.2 Créer la vue `v_bngrc_distributions`
+    □ SELECT dist.*, d.type_article_id, d.donateur, b.ville_id
+    □ v.nom AS ville_nom, r.nom AS region_nom
+    □ ta.nom AS article_nom, ta.categorie, ta.prix_unitaire, ta.unite
+    □ FROM bngrc_distribution dist
+    □ JOIN bngrc_dons d ON dist.don_id = d.id
+    □ JOIN bngrc_besoin b ON dist.besoin_id = b.id
+    □ JOIN bngrc_ville v ON b.ville_id = v.id
+    □ JOIN bngrc_region r ON v.idregion = r.id
+    □ JOIN bngrc_type_articles ta ON d.type_article_id = ta.id
+    ⏱ Temps estimé : 4 min
+    ✓ État initial : vue vide car table distributions vide
+
+1.3 Créer les vues d'optimisation pour la simulation
+    □ v_bngrc_besoins_avec_articles : besoins + catégorie + prix_unitaire
+    □ v_bngrc_dons_disponibles_par_type : dons + quantite_disponible calculée
+    □ v_bngrc_resume_simulation : COUNT, SUM quantité, SUM montant (hors argent)
+    ⏱ Temps estimé : 6 min
+    ✓ État initial : vues vides, utilisées par algorithme de simulation
+
+
+📋 PHASE 2 : MODÈLES (Estimation: 25min)
+───────────────────────────────────────────────────────────────────
+
+2.1 Créer Distribution.php (app/models/)
+    □ Namespace models, use PDO
+    □ Properties PRIVÉES : id, don_id, besoin_id, quantite, date_distribution, est_simulation
+    □ Constructor vide : public function __construct() {}
+    ⏱ Temps estimé : 2 min
+    ✓ État initial : classe vide, aucune distribution en DB
+
+2.2 Getters Distribution.php
+    □ getId(): ?int
+    □ getDonId(): ?int
+    □ getBesoinId(): ?int
+    □ getQuantite(): ?int
+    □ getDateDistribution(): ?string
+    □ isSimulation(): ?bool
+    ⏱ Temps estimé : 2 min
+
+2.3 Setters Distribution.php (fluent interface)
+    □ setId(?int $id): self { $this->id = $id; return $this; }
+    □ setDonId(?int $don_id): self
+    □ setBesoinId(?int $besoin_id): self
+    □ setQuantite(?int $quantite): self
+    □ setDateDistribution(?string $date_distribution): self
+    □ setEstSimulation(?bool $est_simulation): self
+    ⏱ Temps estimé : 2 min
+
+2.4 Méthodes CRUD Distribution.php
+    □ create(PDO $db): bool - INSERT avec prepared statement
+    □ findById(PDO $db, int $id): ?Distribution - SELECT avec setters
+    □ static fromArray(array $data): Distribution - helper construction
+    □ findAllComplete(PDO $db): array - SELECT * FROM v_bngrc_distributions
+    □ findSimulations(PDO $db): array - WHERE est_simulation = TRUE
+    □ findValidees(PDO $db): array - WHERE est_simulation = FALSE
+    □ delete(PDO $db): bool - DELETE FROM bngrc_distribution WHERE id
+    ⏱ Temps estimé : 7 min
+    ✓ État initial DB : 0 distributions après findAll()
+
+2.5 Méthodes métier Distribution.php (cœur de la simulation)
+    □ static supprimerSimulations(PDO $db): bool - DELETE WHERE est_simulation = TRUE
+    □ static validerSimulations(PDO $db): bool - UPDATE SET est_simulation = FALSE WHERE est_simulation = TRUE
+    □ static simulerDistribution(PDO $db): array - ALGORITHME COMPLEXE :
+        1. Supprimer anciennes simulations
+        2. Récupérer besoins via v_bngrc_besoins_avec_articles (WHERE categorie != 'argent', ORDER BY date_demande)
+        3. Pour chaque besoin :
+            a. Calculer quantite_restante (besoin.quantite - SUM distributions validées)
+            b. Récupérer dons via v_bngrc_dons_disponibles_par_type (WHERE type_article_id = besoin.type_article_id)
+            c. Pour chaque don disponible :
+                - quantiteADistribuer = MIN(quantite_restante, don.quantite_disponible)
+                - Créer Distribution avec est_simulation = TRUE
+                - Décrémenter quantite_restante
+        4. Retourner array des distributions créées
+    □ static getResumeSimulation(PDO $db): array - SELECT * FROM v_bngrc_resume_simulation
+    ⏱ Temps estimé : 12 min
+    ✓ Logique complexe : dispatch optimal, ordre FIFO, gestion quantités
+
+
+📋 PHASE 3 : CONTRÔLEUR (Estimation: 20min)
+───────────────────────────────────────────────────────────────────
+
+3.1 Créer SimulationController.php (app/controllers/)
+    □ Namespace controllers
+    □ use models\Besoin, models\Don, models\Distribution, models\Achat
+    □ use Flight, PDO
+    □ TOUS LES MÉTHODES STATIC : public static function
+    □ Pas de constructor, pas de $this->db
+    □ Utiliser Flight::db() dans chaque méthode
+    ⏱ Temps estimé : 2 min
+    ✓ État initial : aucun controller, pas de routes
+
+3.2 Méthode showSimulation()
+    □ public static function showSimulation(): void
+    □ $db = Flight::db()
+    □ $simulationsData = Distribution::findSimulations($db)
+    □ $hasSimulation = !empty($simulationsData)
+    □ if ($hasSimulation) { $besoinsData = Besoin::findBesoinsAvecSimulation($db); }
+    □ else { $besoinsData = Besoin::findBesoinsNonSatisfaits($db); }
+    □ Boucle foreach $besoinsData : calculer progression (ratio_display, progress_class, progress_width, is_projected)
+    □ LOGIQUE PROGRESSION :
+        - Si hasSimulation && ratio_satisfaction_avec_simulation : ratio_display = ratio_avec_simulation, is_projected = true
+        - Sinon : ratio_display = ratio_satisfaction, is_projected = false
+        - progress_class : >= 100 ? 'progress-complete' : (>= 50 ? 'progress-partial' : 'progress-low')
+        - progress_width : min(ratio_display, 100)
+    □ $donsData = Don::findAllDisponibles($db)
+    □ $distribueesData = Distribution::findValidees($db)
+    □ $resumeSimulation = Distribution::getResumeSimulation($db)
+    □ Flight::render('simulation/index', [...])
+    ⏱ Temps estimé : 6 min
+    ✓ État initial : affichera 0 distributions (DB vide), besoins non satisfaits
+
+3.3 Méthode simuler() (AJAX)
+    □ public static function simuler(): void
+    □ $db = Flight::db()
+    □ try { $resultats = Distribution::simulerDistribution($db); }
+    □ $resume = Distribution::getResumeSimulation($db)
+    □ $simulations = Distribution::findSimulations($db)
+    □ Flight::json(['success' => true, 'message' => '...', 'nb_distributions' => count($resultats), ...])
+    □ catch { Flight::json(['success' => false, 'message' => ...], 500); }
+    ⏱ Temps estimé : 3 min
+
+3.4 Méthode valider() (AJAX)
+    □ public static function valider(): void
+    □ $db = Flight::db()
+    □ try { Distribution::validerSimulations($db); Achat::validerTous($db); }
+    □ Flight::json(['success' => true, 'message' => 'Distribution validée avec succès !'])
+    □ catch { Flight::json(['success' => false, ...], 500); }
+    ⏱ Temps estimé : 3 min
+    ✓ Valide distributions + achats en même temps
+
+3.5 Méthode annuler() (AJAX)
+    □ public static function annuler(): void
+    □ $db = Flight::db()
+    □ try { Distribution::supprimerSimulations($db); }
+    □ Flight::json(['success' => true, 'message' => 'Simulation annulée'])
+    □ catch { Flight::json(['success' => false, ...], 500); }
+    ⏱ Temps estimé : 2 min
+
+3.6 Méthode getEtat() (AJAX)
+    □ public static function getEtat(): void
+    □ $db = Flight::db()
+    □ $simulations = Distribution::findSimulations($db)
+    □ $resume = Distribution::getResumeSimulation($db)
+    □ $besoins = Besoin::findBesoinsNonSatisfaits($db)
+    □ Flight::json(['success' => true, 'simulations' => ..., 'resume' => ..., 'besoins' => ...])
+    ⏱ Temps estimé : 2 min
+
+3.7 Méthode RecapController::showRecap() et getRecapAjax()
+    □ Controller séparé pour la récapitulation
+    □ public static function showRecap(): void - afficher vue recap/index
+    □ public static function getRecapAjax(): void - retourner JSON pour refresh AJAX
+    □ private static function getRecapData(): array - calculer toutes les stats :
+        - v_bngrc_recapitulatif_besoins (montant total, satisfait, restant)
+        - Dons disponibles (SUM), dons nature, dons argent
+        - Argent disponible (v_bngrc_argent_disponible)
+        - Achats validés, achats en attente
+        - Distributions en simulation
+        - Stats par catégorie
+        - Nombre besoins, nombre besoins satisfaits
+        - Ratio global
+    ⏱ Temps estimé : 2 min (déjà existant)
+
+
+📋 PHASE 4 : VUES (Estimation: 25min)
+───────────────────────────────────────────────────────────────────
+
+4.1 Créer index.php (app/views/simulation/)
+    □ <?php include header, link CSS simulation.css
+    □ H1 : ⚙️ Simulation & Distribution
+    □ Explication 3 étapes : SIMULER → Vérifier → DISTRIBUER
+    □ Boutons actions :
+        - btn-simuler : onclick="simuler()" (AJAX)
+        - btn-distribuer : onclick="valider()" (AJAX), disabled si !simulations
+        - btn-annuler : onclick="annuler()" (AJAX), visible si simulations
+    □ Div loading : style="display:none", affiché pendant AJAX
+    ⏱ Temps estimé : 5 min
+
+4.2 Info-cards simulation/index.php
+    □ 4 info-cards : dons disponibles, besoins non satisfaits, distributions en simulation, distributions validées
+    □ Couleurs : blue, purple, orange, green
+    □ Valeurs dynamiques : count($dons), count($besoins), count($simulations), count($distribuees)
+    □ Update via AJAX après simuler()
+    ⏱ Temps estimé : 3 min
+
+4.3 Simulation preview dans simulation/index.php
+    □ Affichée si !empty($simulations)
+    □ Div .simulation-preview : fond orange, "⚠️ Simulation en cours - Non validée"
+    □ Table : Don #, Donateur, →, Besoin #, Ville, Article, Quantité, Statut
+    □ Badge "En simulation" (orange)
+    □ Tbody foreach $simulations
+    ⏱ Temps estimé : 4 min
+
+4.4 Table dons disponibles dans simulation/index.php
+    □ H3 : 📦 Dons disponibles (non distribués)
+    □ Empty state si empty($dons) : "Aucun don disponible" + lien "Ajouter un don"
+    □ Table : Don #, Date, Donateur, Article, Catégorie, Quantité totale, Disponible
+    □ Badge catégorie : badge-<?php echo $cat; ?>
+    □ Tbody foreach $dons
+    ⏱ Temps estimé : 4 min
+
+4.5 Table besoins non satisfaits dans simulation/index.php
+    □ H3 : 📋 Besoins non satisfaits
+    □ Empty state si empty($besoins) : "✅ Tous les besoins sont satisfaits !"
+    □ Table : Besoin #, Date, Ville, Article, Catégorie, Demandé, Reçu, Restant, Satisfaction
+    □ Colonne Satisfaction : barre de progression CALCULÉE DANS LE CONTROLLER
+        - Utiliser $besoin['progress_class'], $besoin['progress_width'], $besoin['ratio_display']
+        - Afficher 📊 si $besoin['is_projected'] (simulation en cours)
+    □ Classes progress : .progress-complete (vert), .progress-partial (orange), .progress-low (rouge)
+    □ Tbody foreach $besoins
+    ⏱ Temps estimé : 5 min
+
+4.6 Table distributions validées dans simulation/index.php
+    □ H3 : ✅ Distributions validées (récentes)
+    □ Affichée si !empty($distribuees)
+    □ Table : Date, Don #, Donateur, →, Besoin #, Ville, Article, Quantité
+    □ Afficher seulement 10 dernières : array_slice($distribuees, 0, 10)
+    □ Tbody foreach $distribuees
+    ⏱ Temps estimé : 3 min
+
+4.7 CSS simulation.css
+    □ .simulation-box { background: #fff3cd; border: 2px solid #ffc107; padding: 20px; }
+    □ .simulation-preview { background: #ffe5b4; border: 2px solid #ff9800; }
+    □ .badge-simulation { background: #ff9800; color: white; }
+    □ .progress-bar-container { width: 100%; height: 20px; background: #e0e0e0; border-radius: 10px; }
+    □ .progress-bar { height: 100%; border-radius: 10px; text-align: center; color: white; font-weight: bold; }
+    □ .progress-complete { background: #28a745; }
+    □ .progress-partial { background: #ffc107; color: #333; }
+    □ .progress-low { background: #dc3545; }
+    □ .info-cards, .info-card (blue, purple, orange, green)
+    □ .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 24px; }
+    ⏱ Temps estimé : 1 min
+
+
+📋 PHASE 5 : JAVASCRIPT (Estimation: 18min)
+───────────────────────────────────────────────────────────────────
+
+5.1 Créer simulation.js (public/assets/js/)
+    □ Déclarer baseURL : const baseURL = window.BASE_URL || '';
+    □ Fonction simuler() : fetch POST baseURL + '/simulation/simuler'
+    □ Afficher loading pendant AJAX
+    □ Si success : alert succès, recharger page (location.reload())
+    □ Si error : alert erreur
+    □ Cacher loading après AJAX
+    ⏱ Temps estimé : 5 min
+
+5.2 Fonction valider() dans simulation.js
+    □ Confirm : "Êtes-vous sûr de vouloir DISTRIBUER définitivement ?"
+    □ fetch POST baseURL + '/simulation/valider'
+    □ Afficher loading
+    □ Si success : alert succès, recharger page
+    □ Si error : alert erreur
+    □ Cacher loading
+    ⏱ Temps estimé : 4 min
+
+5.3 Fonction annuler() dans simulation.js
+    □ Confirm : "Annuler la simulation en cours ?"
+    □ fetch POST baseURL + '/simulation/annuler'
+    □ Afficher loading
+    □ Si success : recharger page (sans alert)
+    □ Si error : alert erreur
+    □ Cacher loading
+    ⏱ Temps estimé : 4 min
+
+5.4 Fonction refreshEtat() dans simulation.js (optionnel)
+    □ fetch GET baseURL + '/simulation/etat'
+    □ Mettre à jour info-cards dynamiquement (sans reload)
+    □ Mettre à jour nb_simulations dans DOM
+    □ Mettre à jour preview simulation
+    □ Appeler après simuler() pour update immédiat
+    ⏱ Temps estimé : 5 min (optionnel, amélioration UX)
+
+
+📋 PHASE 6 : ROUTES (Estimation: 3min)
+───────────────────────────────────────────────────────────────────
+
+6.1 Déclarer routes simulation (app/routes.php)
+    □ use controllers\SimulationController
+    □ Flight::route('GET /simulation', [SimulationController::class, 'showSimulation'])
+    □ Flight::route('POST /simulation/simuler', [SimulationController::class, 'simuler'])
+    □ Flight::route('POST /simulation/valider', [SimulationController::class, 'valider'])
+    □ Flight::route('POST /simulation/annuler', [SimulationController::class, 'annuler'])
+    □ Flight::route('GET /simulation/etat', [SimulationController::class, 'getEtat'])
+    ⏱ Temps estimé : 3 min
+    ✓ État initial : routes non déclarées
+
+
+📋 PHASE 7 : INTÉGRATION MENU (Estimation: 2min)
+───────────────────────────────────────────────────────────────────
+
+7.1 Ajouter lien Simulation dans header.php
+    □ Ouvrir app/views/includes/header.php
+    □ Ajouter <a href="<?php echo $baseurl; ?>/simulation" class="<?php echo $active == 'simulation' ? 'active' : ''; ?>">
+        ⚙️ Simulation
+      </a>
+    □ Entre Achats et Récapitulation
+    ⏱ Temps estimé : 2 min
+
+
+═══════════════════════════════════════════════════════════════════
+RÉSUMÉ ÉTAT INITIAL
+═══════════════════════════════════════════════════════════════════
+
+✓ Base de données : Table bngrc_distribution VIDE (0 ligne)
+✓ Vues : v_bngrc_distributions, v_bngrc_besoins_avec_articles, v_bngrc_dons_disponibles_par_type, v_bngrc_resume_simulation
+✓ Model Distribution.php : findSimulations() retourne array vide []
+✓ Controller : showSimulation() affichera 0 distributions en simulation
+✓ Vue simulation/index.php : affiche besoins non satisfaits, dons disponibles, 0 simulation
+✓ Bouton SIMULER : déclenche algorithme de distribution automatique
+✓ Après simuler() : DB passe de 0 à N distributions (est_simulation = TRUE)
+✓ Bouton DISTRIBUER : UPDATE est_simulation = FALSE (validation)
+
+═══════════════════════════════════════════════════════════════════
+FONCTIONNALITÉS CLÉS
+═══════════════════════════════════════════════════════════════════
+
+1. Algorithme de simulation (dispatch optimal)
+   □ Objectif : distribuer automatiquement les dons aux besoins
+   □ Logique :
+       1. Récupérer besoins non satisfaits (hors argent), triés par date_demande ASC (FIFO)
+       2. Pour chaque besoin :
+           a. Calculer quantite_restante = quantite_demandee - quantite_recue_validee
+           b. Récupérer dons disponibles du même type_article, triés par date_don ASC (FIFO)
+           c. Pour chaque don :
+               - Distribuer MIN(quantite_restante, don.quantite_disponible)
+               - Créer Distribution avec est_simulation = TRUE
+               - Décrémenter quantite_restante
+           d. Si quantite_restante > 0 : passer au don suivant
+       3. Retourner liste des distributions créées
+   □ Contraintes : HORS ARGENT (categorie != 'argent'), FIFO sur besoins et dons
+   □ Optimisation : utiliser vues SQL pour performance
+   ✓ Évolution DB : 0 → N distributions en simulation
+
+2. Prévisualisation simulation
+   □ Affichage table : distributions en attente (est_simulation = TRUE)
+   □ Badge orange "En simulation"
+   □ Ratio projeté dans besoins : utilise ratio_satisfaction_avec_simulation (inclut simulations)
+   □ Icône 📊 pour indiquer projection
+   □ Bouton DISTRIBUER actif uniquement si simulations en cours
+   ✓ UX : utilisateur voit projection avant validation
+
+3. Validation simulation
+   □ Bouton DISTRIBUER : UPDATE bngrc_distribution SET est_simulation = FALSE
+   □ Également : Achat::validerTous($db) - validation achats en attente
+   □ Confirm JS : "Êtes-vous sûr ?"
+   □ AJAX : pas de reload pendant traitement
+   □ Après validation : distributions définitives, besoins satisfaits
+   ✓ Évolution : distributions simulation → distributions validées
+
+4. Annulation simulation
+   □ Bouton Annuler : DELETE FROM bngrc_distribution WHERE est_simulation = TRUE
+   □ Confirm JS : "Annuler la simulation en cours ?"
+   □ Revenir à l'état initial : 0 distributions en simulation
+   □ Ratio redevient ratio_satisfaction (sans projection)
+   ✓ Permet de recommencer la simulation
+
+5. Gestion des barres de progression
+   □ Calculées dans CONTROLLER (pas dans vue)
+   □ Variables fournies : ratio_display, progress_class, progress_width, is_projected
+   □ Classes CSS : progress-complete (vert, >= 100%), progress-partial (orange, >= 50%), progress-low (rouge, < 50%)
+   □ Si simulation en cours : utilise ratio_satisfaction_avec_simulation + 📊
+   □ Sinon : utilise ratio_satisfaction
+   ✓ Séparation responsabilités : logique backend, affichage frontend
+
+6. Intégration avec achats
+   □ Valider simulation → valider aussi achats en attente
+   □ Achats validés créent dons + distributions automatiquement
+   □ Synchronisation : distributions (dons) + achats (création dons) = satisfaction besoins complète
+   ✓ Cohérence globale du système
+
+7. AJAX et UX
+   □ simulation.js : fetch avec baseURL
+   □ Afficher loading pendant traitement
+   □ Alerts succès/erreur
+   □ Reload après action (simplification, évite sync complexe)
+   □ Confirm avant actions critiques (valider, annuler)
+   ✓ UX fluide, feedback utilisateur
+
+8. Récapitulation (module lié)
+   □ RecapController : stats globales (montant total, satisfait, restant)
+   □ Vue recap/index.php : affichage dashboard
+   □ AJAX : refresh stats sans reload
+   □ Lien depuis header et simulation
+   ✓ Vue d'ensemble du système
+
+═══════════════════════════════════════════════════════════════════
+DURÉE TOTALE ESTIMÉE : 1h48 (108 minutes)
+═══════════════════════════════════════════════════════════════════
+
+BÉNÉFICES :
+✓ Cohérence architecturale : Simulation suit pattern Besoins/Dons/Achats
+✓ Algorithme optimal : dispatch FIFO, gestion quantités disponibles
+✓ Séparation responsabilités : logique backend (Distribution.php), affichage frontend (vue)
+✓ Prévisualisation : utilisateur voit projection avant validation
+✓ Annulation simple : recommencer simulation
+✓ Optimisation SQL : vues pour performance (éviter N+1 queries)
+✓ AJAX : UX fluide sans reload pendant traitement
+✓ Testabilité : méthodes statiques, PDO injectable
+✓ Extensibilité : ajout facile de nouvelles règles de dispatch
+
+CONTRAINTES MÉTIER :
+✓ Simulation hors argent : categorie != 'argent' (argent géré séparément par achats)
+✓ Dispatch FIFO : besoins les plus anciens en premier, dons les plus anciens en premier
+✓ Quantité disponible calculée : don.quantite - SUM(distributions)
+✓ Validation globale : toutes les simulations validées ensemble
+✓ Intégration achats : valider simulation = valider achats aussi
+✓ Ratio projeté : inclut simulations pour prévisualisation
+
+OPTIMISATIONS :
+✓ Vues SQL : v_bngrc_besoins_avec_articles (évite JOIN répété)
+✓ Vues SQL : v_bngrc_dons_disponibles_par_type (calcul quantite_disponible en vue)
+✓ Vues SQL : v_bngrc_resume_simulation (stats pré-calculées)
+✓ Barre progression dans controller : évite calculs dans vue (plus maintenable)
+✓ AJAX avec loading : feedback visuel pendant traitement
+
+═══════════════════════════════════════════════════════════════════
+FIN DE LA TODOLIST MODULE SIMULATION & DISTRIBUTION
+═══════════════════════════════════════════════════════════════════

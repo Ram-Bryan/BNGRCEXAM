@@ -176,16 +176,14 @@ class Distribution
     public static function simulerDistribution(PDO $db): array
     {
         // D'abord, supprimer les anciennes simulations
-        self::supprimerSimulations($db);
+        self::supprimerSimulations(db: $db);
 
         $resultats = [];
 
         // Récupérer les besoins non satisfaits, triés par date (les plus anciens en premier)
-        $sqlBesoins = "SELECT b.*, ta.categorie, ta.prix_unitaire
-               FROM bngrc_besoin b
-               JOIN bngrc_type_articles ta ON b.type_article_id = ta.id
-               WHERE ta.categorie != 'argent'
-               ORDER BY b.date_demande ASC, b.id ASC";
+        $sqlBesoins = "SELECT * FROM v_bngrc_besoins_avec_articles
+               WHERE categorie != 'argent'
+               ORDER BY date_demande ASC, id ASC";
         $stmtBesoins = $db->query($sqlBesoins);
         $besoins = $stmtBesoins->fetchAll(PDO::FETCH_ASSOC);
 
@@ -204,15 +202,9 @@ class Distribution
             }
 
             // Récupérer les dons disponibles du même type d'article
-            $sqlDons = "SELECT d.*, 
-                        d.quantite - COALESCE((
-                            SELECT SUM(dist.quantite) FROM bngrc_distribution dist 
-                            WHERE dist.don_id = d.id
-                        ), 0) AS quantite_disponible
-                        FROM bngrc_dons d
-                        WHERE d.type_article_id = :type_article_id
-                        HAVING quantite_disponible > 0
-                        ORDER BY d.date_don ASC, d.id ASC";
+            $sqlDons = "SELECT * FROM v_bngrc_dons_disponibles_par_type
+                        WHERE type_article_id = :type_article_id
+                        ORDER BY date_don ASC, id ASC";
             $stmtDons = $db->prepare($sqlDons);
             $stmtDons->execute([':type_article_id' => $besoin['type_article_id']]);
             $dons = $stmtDons->fetchAll(PDO::FETCH_ASSOC);
@@ -251,17 +243,13 @@ class Distribution
      */
     public static function getResumeSimulation(PDO $db): array
     {
-                $sql = "SELECT 
-                                        COUNT(*) AS nb_distributions,
-                                        SUM(dist.quantite) AS total_quantite,
-                                        SUM(dist.quantite * ta.prix_unitaire) AS total_montant
-                                FROM bngrc_distribution dist
-                                JOIN bngrc_dons d ON dist.don_id = d.id
-                                JOIN bngrc_type_articles ta ON d.type_article_id = ta.id
-                                WHERE dist.est_simulation = TRUE
-                                    AND ta.categorie != 'argent'";
+        $sql = "SELECT * FROM v_bngrc_resume_simulation";
         $stmt = $db->query($sql);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: [
+            'nb_distributions' => 0,
+            'total_quantite' => 0,
+            'total_montant' => 0
+        ];
     }
 
     public function delete(PDO $db): bool

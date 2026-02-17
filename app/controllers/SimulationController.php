@@ -11,38 +11,48 @@ use PDO;
 
 class SimulationController
 {
-    private PDO $db;
-
-    public function __construct()
-    {
-        $this->db = Flight::db();
-    }
-
     /**
      * Afficher la page de simulation
      */
-    public function showSimulation()
+    public static function showSimulation()
     {
+        $db = Flight::db();
+
         // Vérifier s'il y a des simulations en cours
-        $simulationsData = Distribution::findSimulations($this->db);
+        $simulationsData = Distribution::findSimulations($db);
         $hasSimulation = !empty($simulationsData);
 
         // Si simulation en cours, utiliser la vue avec simulation pour voir la projection
         // Sinon utiliser la vue standard
         if ($hasSimulation) {
-            $besoinsData = Besoin::findBesoinsAvecSimulation($this->db);
+            $besoinsData = Besoin::findBesoinsAvecSimulation($db);
         } else {
-            $besoinsData = Besoin::findBesoinsNonSatisfaits($this->db);
+            $besoinsData = Besoin::findBesoinsNonSatisfaits($db);
         }
 
+        // Calculer la progression pour chaque besoin
+        foreach ($besoinsData as &$besoin) {
+            if ($hasSimulation && isset($besoin['ratio_satisfaction_avec_simulation'])) {
+                $besoin['ratio_display'] = $besoin['ratio_satisfaction_avec_simulation'];
+                $besoin['is_projected'] = true;
+            } else {
+                $besoin['ratio_display'] = $besoin['ratio_satisfaction'];
+                $besoin['is_projected'] = false;
+            }
+            $besoin['progress_class'] = $besoin['ratio_display'] >= 100 ? 'progress-complete' : 
+                                       ($besoin['ratio_display'] >= 50 ? 'progress-partial' : 'progress-low');
+            $besoin['progress_width'] = min($besoin['ratio_display'], 100);
+        }
+        unset($besoin);
+
         // Dons disponibles
-        $donsData = Don::findAllDisponibles($this->db);
+        $donsData = Don::findAllDisponibles($db);
 
         // Distributions validées
-        $distribueesData = Distribution::findValidees($this->db);
+        $distribueesData = Distribution::findValidees($db);
 
         // Résumé de la simulation actuelle
-        $resumeSimulation = Distribution::getResumeSimulation($this->db);
+        $resumeSimulation = Distribution::getResumeSimulation($db);
 
         Flight::render('simulation/index', [
             'besoins' => $besoinsData,
@@ -57,14 +67,15 @@ class SimulationController
     /**
      * Lancer la simulation (créer les distributions en mode simulation)
      */
-    public function simuler()
+    public static function simuler()
     {
         try {
-            $resultats = Distribution::simulerDistribution($this->db);
-            $resume = Distribution::getResumeSimulation($this->db);
+            $db = Flight::db();
+            $resultats = Distribution::simulerDistribution($db);
+            $resume = Distribution::getResumeSimulation($db);
 
             // Récupérer les détails de la simulation
-            $simulations = Distribution::findSimulations($this->db);
+            $simulations = Distribution::findSimulations($db);
 
             Flight::json([
                 'success' => true,
@@ -84,14 +95,15 @@ class SimulationController
     /**
      * Valider la simulation (rendre les distributions définitives)
      */
-    public function valider()
+    public static function valider()
     {
         try {
+            $db = Flight::db();
             // Valider les distributions simulées
-            Distribution::validerSimulations($this->db);
+            Distribution::validerSimulations($db);
 
             // Valider aussi les achats en attente
-            Achat::validerTous($this->db);
+            Achat::validerTous($db);
 
             Flight::json([
                 'success' => true,
@@ -108,10 +120,11 @@ class SimulationController
     /**
      * Annuler la simulation
      */
-    public function annuler()
+    public static function annuler()
     {
         try {
-            Distribution::supprimerSimulations($this->db);
+            $db = Flight::db();
+            Distribution::supprimerSimulations($db);
 
             Flight::json([
                 'success' => true,
@@ -128,11 +141,12 @@ class SimulationController
     /**
      * Récupérer l'état actuel de la simulation (AJAX)
      */
-    public function getEtat()
+    public static function getEtat()
     {
-        $simulations = Distribution::findSimulations($this->db);
-        $resume = Distribution::getResumeSimulation($this->db);
-        $besoins = Besoin::findBesoinsNonSatisfaits($this->db);
+        $db = Flight::db();
+        $simulations = Distribution::findSimulations($db);
+        $resume = Distribution::getResumeSimulation($db);
+        $besoins = Besoin::findBesoinsNonSatisfaits($db);
 
         Flight::json([
             'success' => true,

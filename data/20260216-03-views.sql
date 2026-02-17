@@ -275,3 +275,51 @@ SELECT
     (SELECT argent_disponible FROM v_bngrc_argent_disponible) AS argent_disponible
 FROM bngrc_besoin b
 JOIN bngrc_type_articles ta ON b.type_article_id = ta.id;
+
+-- ============================================================
+-- VUES OPTIMISATION SIMULATION
+-- ============================================================
+
+-- Vue des besoins avec détails article (pour simulerDistribution)
+CREATE OR REPLACE VIEW v_bngrc_besoins_avec_articles AS
+SELECT 
+    b.id,
+    b.ville_id,
+    b.type_article_id,
+    b.quantite,
+    b.date_demande,
+    ta.nom AS article_nom,
+    ta.categorie,
+    ta.prix_unitaire,
+    ta.unite
+FROM bngrc_besoin b
+JOIN bngrc_type_articles ta ON b.type_article_id = ta.id;
+
+-- Vue des dons disponibles par type d'article (pour simulerDistribution)
+CREATE OR REPLACE VIEW v_bngrc_dons_disponibles_par_type AS
+SELECT 
+    d.id,
+    d.type_article_id,
+    d.quantite,
+    d.date_don,
+    d.donateur,
+    d.quantite - COALESCE((
+        SELECT SUM(dist.quantite) 
+        FROM bngrc_distribution dist 
+        WHERE dist.don_id = d.id
+    ), 0) AS quantite_disponible
+FROM bngrc_dons d
+HAVING quantite_disponible > 0
+ORDER BY d.date_don ASC, d.id ASC;
+
+-- Vue résumé simulation (distributions en simulation, hors argent)
+CREATE OR REPLACE VIEW v_bngrc_resume_simulation AS
+SELECT 
+    COUNT(*) AS nb_distributions,
+    COALESCE(SUM(dist.quantite), 0) AS total_quantite,
+    COALESCE(SUM(dist.quantite * ta.prix_unitaire), 0) AS total_montant
+FROM bngrc_distribution dist
+JOIN bngrc_dons d ON dist.don_id = d.id
+JOIN bngrc_type_articles ta ON d.type_article_id = ta.id
+WHERE dist.est_simulation = TRUE
+    AND ta.categorie != 'argent';

@@ -37,11 +37,11 @@ Flight::route('POST /achats/annuler', [new AchatController(), 'annulerSimulation
 Flight::route('POST /achats/@id/delete', [new AchatController(), 'delete']);
 
 // ==================== SIMULATION ====================
-Flight::route('GET /simulation', [new SimulationController(), 'showSimulation']);
-Flight::route('POST /simulation/simuler', [new SimulationController(), 'simuler']);
-Flight::route('POST /simulation/valider', [new SimulationController(), 'valider']);
-Flight::route('POST /simulation/annuler', [new SimulationController(), 'annuler']);
-Flight::route('GET /simulation/etat', [new SimulationController(), 'getEtat']);
+Flight::route('GET /simulation', [SimulationController::class, 'showSimulation']);
+Flight::route('POST /simulation/simuler', [SimulationController::class, 'simuler']);
+Flight::route('POST /simulation/valider', [SimulationController::class, 'valider']);
+Flight::route('POST /simulation/annuler', [SimulationController::class, 'annuler']);
+Flight::route('GET /simulation/etat', [SimulationController::class, 'getEtat']);
 
 // ==================== RÉCAPITULATION ====================
 Flight::route('GET /recap', [new RecapController(), 'showRecap']);

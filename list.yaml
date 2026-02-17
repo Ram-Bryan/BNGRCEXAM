@@ -1,34 +1,37 @@
-MISSION Refractor Achats  et en general :
-    - list.php:
-        - au lieu de faire ca dans lsit.php :
-            - 
-            <?php
-            $achatsEnAttente = array_filter($achats, fn($a) => !$a['valide']);
-            if (count($achatsEnAttente) > 0):
-            ?> 
-            utilise getAchatAttente() dans controllleur pour ensuite envoyer le resulat dans lsit.php 
-        - ne fais pas:                     <th>Frais (<?php echo \models\Configuration::getValue(Flight::db(), 'FRAIS_ACHAT_PERCENT', 10, 'int'); ?>%)</th>
-        Il faut que tu met dans AchatController et que tu l'envoie dans le vues 
-    - fais des redirect de message et isset Messages != null au lieu de erruer pour unifier et faire div messages. 
-
-    - besoins_restant.php:
-        - fais dans controller ca:
-                                $montantRestant = $besoin['quantite_restante'] * $besoin['prix_unitaire'];
- 
-    - AchatController:
-        - 
-    
-    - Configuration:
-        - Normalement pour getValue on prend juste getGAlue mais on ne donne pas la valeur dans la methode et on ne met pas de defautl aussi du coup c est just  Configuration::getValue($this->db, 'FRAIS_ACHAT_PERCENT'
-    
+REFRACTOR Simulation:
     - DB:
-        - creer une view pour SELECT a.*, b.type_article_id, b.ville_id 
-                          FROM bngrc_achat a
-                          JOIN bngrc_besoin b et uilise la dans  validerTous
+        - faire une vue pour SELECT b.*, ta.categorie, ta.prix_unitaire
+               FROM bngrc_besoin b
+               JOIN bngrc_type_articles ta ON b.type_article_id = ta.id
+        
+        - Creer une view par rapport a ca:
+        SELECT d.*, 
+                        d.quantite - COALESCE((
+                            SELECT SUM(dist.quantite) FROM bngrc_distribution dist 
+                            WHERE dist.don_id = d.id
+                        ), 0) AS quantite_disponible
+                        FROM bngrc_dons d
+                        WHERE d.type_article_id = :type_article_id
+                        HAVING quantite_disponible > 0
+                        ORDER BY d.date_don ASC, d.id ASC
+        
+        - Creer aussi une vue pour: 
+            - SELECT 
+                                        COUNT(*) AS nb_distributions,
+                                        SUM(dist.quantite) AS total_quantite,
+                                        SUM(dist.quantite * ta.prix_unitaire) AS total_montant
+                                FROM bngrc_distribution dist
+                                JOIN bngrc_dons d ON dist.don_id = d.id
+                                JOIN bngrc_type_articles ta ON d.type_article_id = ta.id
+                                WHERE dist.est_simulation = TRUE
+                                    AND ta.categorie != 'argent'
 
+    - Distribution:
+        - utiliser la vue de DB pour method simulerDistribution 
+        - utliser la vue de la DB pour method simulerDistribution
+        - utliser la methode dans getResumeSimulation
     
-    - routes.php: 
-        - Toutes les fonctions du cntroller, fais les en statiques (pas seulemet pour AchatContorller) 
+    - routes.php:
+        - simulationController en fonction statique 
     
-    - Achat.php method getAchatAttente() --> return list achat en attente ou encore faire ca: return ca array_filter($achats, fn($a) => !$a['valide']);
-
+    - fait la todolist4.txt comme la todolist3 mais cette fois pour la simulation (en supposant qu on repart de 0. Noubli pas d inclure les fichiers js)

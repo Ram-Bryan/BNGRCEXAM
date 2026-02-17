@@ -173,21 +173,9 @@
                         <td><?php echo number_format($besoin['quantite_recue']); ?></td>
                         <td><strong><?php echo number_format($besoin['quantite_restante']); ?></strong></td>
                         <td style="width: 150px;">
-                            <?php
-                            // Si simulation en cours, afficher le ratio projeté, sinon le ratio actuel
-                            if (isset($hasSimulation) && $hasSimulation && isset($besoin['ratio_satisfaction_avec_simulation'])) {
-                                $ratio = $besoin['ratio_satisfaction_avec_simulation'];
-                                $isProjected = true;
-                            } else {
-                                $ratio = $besoin['ratio_satisfaction'];
-                                $isProjected = false;
-                            }
-                            $class = $ratio >= 100 ? 'progress-complete' : ($ratio >= 50 ? 'progress-partial' : 'progress-low');
-                            $width = min($ratio, 100);
-                            ?>
                             <div class="progress-bar-container">
-                                <div class="progress-bar <?php echo $class; ?>" style="width: <?php echo $width; ?>%">
-                                    <?php echo number_format($ratio, 1); ?>%<?php if ($isProjected): ?> 📊<?php endif; ?>
+                                <div class="progress-bar <?php echo $besoin['progress_class']; ?>" style="width: <?php echo $besoin['progress_width']; ?>%">
+                                    <?php echo number_format($besoin['ratio_display'], 1); ?>%<?php if ($besoin['is_projected']): ?> 📊<?php endif; ?>
                                 </div>
                             </div>
                         </td>
