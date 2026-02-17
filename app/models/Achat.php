@@ -210,12 +210,56 @@ class Achat
 
     /**
      * Valider tous les achats non validés
+     * Crée automatiquement un don BNGRC et une distribution pour chaque achat validé
      */
     public static function validerTous(PDO $db): bool
     {
-        $sql = "UPDATE bngrc_achat SET valide = TRUE, date_validation = NOW() WHERE valide = FALSE";
-        $stmt = $db->prepare($sql);
-        return $stmt->execute();
+        try {
+            $db->beginTransaction();
+
+            // Récupérer tous les achats non validés avec les infos du besoin
+            $sqlAchats = "SELECT a.*, b.type_article_id, b.ville_id 
+                          FROM bngrc_achat a
+                          JOIN bngrc_besoin b ON a.besoin_id = b.id
+                          WHERE a.valide = FALSE";
+            $stmtAchats = $db->query($sqlAchats);
+            $achats = $stmtAchats->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($achats as $achat) {
+                // 1. Créer un don BNGRC pour cet achat
+                $sqlDon = "INSERT INTO bngrc_dons (type_article_id, quantite, date_don) 
+                           VALUES (:type_article_id, :quantite, :date_don)";
+                $stmtDon = $db->prepare($sqlDon);
+                $stmtDon->execute([
+                    ':type_article_id' => $achat['type_article_id'],
+                    ':quantite' => $achat['quantite'],
+                    ':date_don' => $achat['date_achat']
+                ]);
+                $donId = $db->lastInsertId();
+
+                // 2. Créer une distribution pour satisfaire le besoin
+                $sqlDist = "INSERT INTO bngrc_distribution (don_id, besoin_id, quantite, date_distribution, est_simulation)
+                            VALUES (:don_id, :besoin_id, :quantite, :date_distribution, FALSE)";
+                $stmtDist = $db->prepare($sqlDist);
+                $stmtDist->execute([
+                    ':don_id' => $donId,
+                    ':besoin_id' => $achat['besoin_id'],
+                    ':quantite' => $achat['quantite'],
+                    ':date_distribution' => date('Y-m-d')
+                ]);
+            }
+
+            // 3. Marquer tous les achats comme validés
+            $sqlValidate = "UPDATE bngrc_achat SET valide = TRUE, date_validation = NOW() WHERE valide = FALSE";
+            $stmtValidate = $db->prepare($sqlValidate);
+            $stmtValidate->execute();
+
+            $db->commit();
+            return true;
+        } catch (\Exception $e) {
+            $db->rollBack();
+            throw $e;
+        }
     }
 
     /**

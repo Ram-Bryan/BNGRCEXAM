@@ -182,9 +182,10 @@ class Distribution
 
         // Récupérer les besoins non satisfaits, triés par date (les plus anciens en premier)
         $sqlBesoins = "SELECT b.*, ta.categorie, ta.prix_unitaire
-                   FROM bngrc_besoin b
-                   JOIN bngrc_type_articles ta ON b.type_article_id = ta.id
-                   ORDER BY b.date_demande ASC, b.id ASC";
+               FROM bngrc_besoin b
+               JOIN bngrc_type_articles ta ON b.type_article_id = ta.id
+               WHERE ta.categorie != 'argent'
+               ORDER BY b.date_demande ASC, b.id ASC";
         $stmtBesoins = $db->query($sqlBesoins);
         $besoins = $stmtBesoins->fetchAll(PDO::FETCH_ASSOC);
 
@@ -250,14 +251,15 @@ class Distribution
      */
     public static function getResumeSimulation(PDO $db): array
     {
-        $sql = "SELECT 
-                    COUNT(*) AS nb_distributions,
-                    SUM(dist.quantite) AS total_quantite,
-                    SUM(dist.quantite * ta.prix_unitaire) AS total_montant
-                FROM bngrc_distribution dist
-                JOIN bngrc_dons d ON dist.don_id = d.id
-                JOIN bngrc_type_articles ta ON d.type_article_id = ta.id
-                WHERE dist.est_simulation = TRUE";
+                $sql = "SELECT 
+                                        COUNT(*) AS nb_distributions,
+                                        SUM(dist.quantite) AS total_quantite,
+                                        SUM(dist.quantite * ta.prix_unitaire) AS total_montant
+                                FROM bngrc_distribution dist
+                                JOIN bngrc_dons d ON dist.don_id = d.id
+                                JOIN bngrc_type_articles ta ON d.type_article_id = ta.id
+                                WHERE dist.est_simulation = TRUE
+                                    AND ta.categorie != 'argent'";
         $stmt = $db->query($sql);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }

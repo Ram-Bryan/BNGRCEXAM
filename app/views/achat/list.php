@@ -2,6 +2,7 @@
 <link rel="stylesheet" href="<?php echo $baseurl; ?>/assets/css/achats.css">
 
 <div class="page-container">
+    
     <div class="header">
         <div>
             <h1>🛒 Liste des Achats</h1>

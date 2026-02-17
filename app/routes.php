@@ -7,6 +7,7 @@ use controllers\AchatController;
 use controllers\SimulationController;
 use controllers\RecapController;
 use controllers\HomeController;
+use controllers\ConfigurationController;
 
 // ==================== ACCUEIL ====================
 Flight::route('GET /', [new HomeController(), 'index']);
@@ -49,3 +50,9 @@ Flight::route('GET /recap/ajax', [new RecapController(), 'getRecapAjax']);
 // ==================== STATISTIQUES ====================
 Flight::route('GET /stats', [new StatsController(), 'listVilles']);
 Flight::route('GET /stats/ville/@id', [new StatsController(), 'showVilleDetail']);
+
+// ==================== CONFIGURATION ====================
+Flight::route('GET /configurations', [new ConfigurationController(), 'list']);
+Flight::route('POST /configurations/create', [new ConfigurationController(), 'create']);
+Flight::route('POST /configurations/update', [new ConfigurationController(), 'update']);
+Flight::route('POST /configurations/delete/@id', [new ConfigurationController(), 'delete']);

@@ -26,6 +26,7 @@
                 <li><a href="<?php echo $baseurl; ?>/simulation" <?php echo strpos($_SERVER['REQUEST_URI'], '/simulation') === 0 ? 'class="active"' : ''; ?>>⚙️ Simulation</a></li>
                 <li><a href="<?php echo $baseurl; ?>/recap" <?php echo strpos($_SERVER['REQUEST_URI'], '/recap') === 0 ? 'class="active"' : ''; ?>>📊 Récap</a></li>
                 <li><a href="<?php echo $baseurl; ?>/stats" <?php echo strpos($_SERVER['REQUEST_URI'], '/stats') === 0 ? 'class="active"' : ''; ?>>📈 Stats</a></li>
+                <li><a href="<?php echo $baseurl; ?>/configurations" <?php echo strpos($_SERVER['REQUEST_URI'], '/configurations') === 0 ? 'class="active"' : ''; ?>>⚙️ Config</a></li>
             </ul>
         </div>
     </nav>
