@@ -12,11 +12,32 @@
 
     <!-- Zone de simulation -->
     <div class="simulation-box">
-        <h2>🎯 Distribution des Dons(Plus ancien)</h2>
+        <h2>🎯 Distribution des Dons</h2>
+        
+        <!-- Sélection du mode de distribution -->
+        <div style="margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
+            <h3 style="margin-bottom: 15px; font-size: 1.1em;">📋 Mode de distribution :</h3>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <label style="display: flex; align-items: center; cursor: pointer; padding: 8px;">
+                    <input type="radio" name="distribution_mode" value="ancien" checked style="margin-right: 10px;">
+                    <strong>Mode "Plus Ancien"</strong> - Distribution selon l'ordre chronologique (premier arrivé, premier servi)
+                </label>
+                <label style="display: flex; align-items: center; cursor: pointer; padding: 8px;">
+                    <input type="radio" name="distribution_mode" value="proportionnel" style="margin-right: 10px;">
+                    <strong>Mode "Proportionnel"</strong> - Distribution proportionnelle selon les besoins de chaque ville
+                </label>
+                <label style="display: flex; align-items: center; cursor: pointer; padding: 8px;">
+                    <input type="radio" name="distribution_mode" value="plus_petit" style="margin-right: 10px;" disabled>
+                    <strong>Mode "Plus Petit"</strong> - Distribution prioritaire aux plus petits besoins (à venir)
+                </label>
+            </div>
+        </div>
+        
         <p style="opacity: 0.9; margin-bottom: 20px;">
-            1. Cliquez sur <strong>SIMULER</strong> pour prévisualiser la distribution<br>
-            2. Vérifiez les attributions proposées<br>
-            3. Cliquez sur <strong>DISTRIBUER</strong> pour valider définitivement
+            1. <strong>Choisissez un mode de distribution</strong> ci-dessus<br>
+            2. Cliquez sur <strong>SIMULER</strong> pour prévisualiser la distribution<br>
+            3. Vérifiez les attributions proposées<br>
+            4. Cliquez sur <strong>DISTRIBUER</strong> pour valider définitivement
         </p>
         <div class="buttons-row">
             <button type="button" class="btn btn-warning btn-lg" id="btn-simuler" onclick="simuler()">

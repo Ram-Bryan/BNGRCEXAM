@@ -1,10 +1,32 @@
-Division: 
-    - choisir 
-    - celui qui demande le minimum  
+Dans ce projets, je veux creer 3 modes de distribution:
+    - mode avec le plus ancien 
+    - mode proportionne 
+    - mode avec le plus petit 
 
-Donnes de dons et de besoins 
-    - mode petit 
-    - mode le plus ancien 
-    - reinitailiser bouton --> revenir au donnes initiales 
+ON a deja fini le mode avec le plus ancien qui est le mode par defaut du systeme. Maintenant je veux me concentrer sur le mode mode proportionne. Ne touche pas au mode le plus petit. Voici les changements que tu dois faire:
 
-blablab
+simulation.php:
+    - radio des troix modes (il faut choisir le mode avant de bouvoir simuler ou autre donc faire un check de backend "Choisissez d abord un mode)
+    - select mode le plus ancien: mode par defaut qui est deja implemente 
+    - select mode proportionnel:
+        - click simuler fais une verification de quel radio est selectionne 
+
+SimulationController:
+    - simulation/prop 
+
+Distributino avec method proportionnels.
+
+Voici comment fonctionne le mode proportionnel, si il y a des demandes de besoins pour riz: 
+ville 1: 3
+ville 2: 5
+ville 4: 2
+
+Et on a un dons de 6. Donc il faudra proportionnelment partager ces 6 pour ces besoins, en prenant comme valeur int (car non decimale) la valeur la plus basse de la decimale (pour 8.9 on prend 8 comme dons). Ainsi on aura:
+
+3 + 5 + 2 = 10. et on aura la proportion: 6/10. Ainsi on calculreal pour chaque:
+
+ville 1: 3 * (6/10) = 1.8 => on ne prend que 1
+ville 2: 5 * (6/10) = 3 => on rpend le 3
+ville 3: 2* (6/10) = 1.2 => on prend le 1
+
+Le reste on le garde dans le Dons disponibles 

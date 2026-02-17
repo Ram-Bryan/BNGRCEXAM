@@ -1,13 +1,34 @@
 // JS for simulation page
 function simuler() {
+    // Vérifier qu'un mode est sélectionné
+    const modeRadios = document.getElementsByName('distribution_mode');
+    let modeSelectionne = null;
+    
+    for (const radio of modeRadios) {
+        if (radio.checked) {
+            modeSelectionne = radio.value;
+            break;
+        }
+    }
+    
+    if (!modeSelectionne) {
+        alert('⚠️ Veuillez d\'abord choisir un mode de distribution');
+        return;
+    }
+    
     const btn = document.getElementById('btn-simuler');
     btn.disabled = true;
     btn.innerHTML = '⏳ Simulation...';
 
     document.getElementById('loading').style.display = 'block';
 
+    // Envoyer le mode sélectionné au backend
+    const formData = new FormData();
+    formData.append('distribution_logic', modeSelectionne);
+
     fetch(window.BASE_URL + 'simulation/simuler', {
-            method: 'POST'
+            method: 'POST',
+            body: formData
         })
         .then(response => response.json())
         .then(data => {
