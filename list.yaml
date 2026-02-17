@@ -1,3 +1,34 @@
-MISSION Refractor Achats:
+MISSION Refractor Achats  et en general :
     - list.php:
-        
+        - au lieu de faire ca dans lsit.php :
+            - 
+            <?php
+            $achatsEnAttente = array_filter($achats, fn($a) => !$a['valide']);
+            if (count($achatsEnAttente) > 0):
+            ?> 
+            utilise getAchatAttente() dans controllleur pour ensuite envoyer le resulat dans lsit.php 
+        - ne fais pas:                     <th>Frais (<?php echo \models\Configuration::getValue(Flight::db(), 'FRAIS_ACHAT_PERCENT', 10, 'int'); ?>%)</th>
+        Il faut que tu met dans AchatController et que tu l'envoie dans le vues 
+    - fais des redirect de message et isset Messages != null au lieu de erruer pour unifier et faire div messages. 
+
+    - besoins_restant.php:
+        - fais dans controller ca:
+                                $montantRestant = $besoin['quantite_restante'] * $besoin['prix_unitaire'];
+ 
+    - AchatController:
+        - 
+    
+    - Configuration:
+        - Normalement pour getValue on prend juste getGAlue mais on ne donne pas la valeur dans la methode et on ne met pas de defautl aussi du coup c est just  Configuration::getValue($this->db, 'FRAIS_ACHAT_PERCENT'
+    
+    - DB:
+        - creer une view pour SELECT a.*, b.type_article_id, b.ville_id 
+                          FROM bngrc_achat a
+                          JOIN bngrc_besoin b et uilise la dans  validerTous
+
+    
+    - routes.php: 
+        - Toutes les fonctions du cntroller, fais les en statiques (pas seulemet pour AchatContorller) 
+    
+    - Achat.php method getAchatAttente() --> return list achat en attente ou encore faire ca: return ca array_filter($achats, fn($a) => !$a['valide']);
+

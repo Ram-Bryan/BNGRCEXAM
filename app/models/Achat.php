@@ -188,6 +188,15 @@ class Achat
     }
 
     /**
+     * Récupérer les achats en attente (non validés)
+     * Alias de findNonValides pour plus de clarté
+     */
+    public static function findEnAttente(PDO $db): array
+    {
+        return self::findNonValides($db);
+    }
+
+    /**
      * Récupérer l'argent disponible pour les achats
      */
     public static function getArgentDisponible(PDO $db): float
@@ -218,10 +227,7 @@ class Achat
             $db->beginTransaction();
 
             // Récupérer tous les achats non validés avec les infos du besoin
-            $sqlAchats = "SELECT a.*, b.type_article_id, b.ville_id 
-                          FROM bngrc_achat a
-                          JOIN bngrc_besoin b ON a.besoin_id = b.id
-                          WHERE a.valide = FALSE";
+            $sqlAchats = "SELECT * FROM v_bngrc_achats_avec_besoins WHERE valide = FALSE";
             $stmtAchats = $db->query($sqlAchats);
             $achats = $stmtAchats->fetchAll(PDO::FETCH_ASSOC);
 

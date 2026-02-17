@@ -10,8 +10,14 @@
         <a href="<?php echo $baseurl; ?>/achats" class="btn">📋 Voir les achats</a>
     </div>
 
-    <?php if (isset($_GET['error'])): ?>
-        <div class="error">⚠️ Erreur : <?php echo htmlspecialchars($_GET['error']); ?></div>
+    <?php if (isset($_GET['success']) || isset($_GET['error'])): ?>
+        <div class="<?php echo isset($_GET['success']) ? 'success' : 'error'; ?>">
+            <?php if (isset($_GET['success'])): ?>
+                ✅ <?php echo htmlspecialchars($_GET['success']); ?>
+            <?php else: ?>
+                ⚠️ Erreur : <?php echo htmlspecialchars($_GET['error']); ?>
+            <?php endif; ?>
+        </div>
     <?php endif; ?>
 
     <div class="info-cards">

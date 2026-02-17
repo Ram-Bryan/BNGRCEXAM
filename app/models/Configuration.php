@@ -56,10 +56,20 @@ class Configuration
     }
 
     /**
-     * Raccourci pour obtenir la valeur avec fallback et typage simple
-     * Si $type = 'int' ou 'float' effectue un cast
+     * Raccourci pour obtenir la valeur d'une configuration
+     * Retourne null si la configuration n'existe pas
      */
-    public static function getValue(PDO $db, string $nom, $default = null, string $type = 'string')
+    public static function getValue(PDO $db, string $nom): ?string
+    {
+        $cfg = self::findByNom($db, $nom);
+        if (!$cfg) return null;
+        return $cfg->getValeur();
+    }
+
+    /**
+     * Obtenir une valeur avec cast de type
+     */
+    public static function getValueAs(PDO $db, string $nom, string $type = 'string', $default = null)
     {
         $cfg = self::findByNom($db, $nom);
         if (!$cfg) return $default;

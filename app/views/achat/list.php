@@ -2,7 +2,7 @@
 <link rel="stylesheet" href="<?php echo $baseurl; ?>/assets/css/achats.css">
 
 <div class="page-container">
-    
+
     <div class="header">
         <div>
             <h1>🛒 Liste des Achats</h1>
@@ -11,29 +11,30 @@
         <a href="<?php echo $baseurl; ?>/achats/besoins" class="btn btn-success">➕ Nouvel achat</a>
     </div>
 
-    <?php if (isset($_GET['success'])): ?>
-        <div class="success">✅
-            <?php
-            switch ($_GET['success']) {
-                case 'created':
-                    echo 'Achat créé avec succès (en attente de validation)';
-                    break;
-                case 'validated':
-                    echo 'Tous les achats ont été validés !';
-                    break;
-                case 'cancelled':
-                    echo 'Simulation annulée';
-                    break;
-                case 'deleted':
-                    echo 'Achat supprimé';
-                    break;
-            }
-            ?>
+    <?php if (isset($_GET['success']) || isset($_GET['error'])): ?>
+        <div class="<?php echo isset($_GET['success']) ? 'success' : 'error'; ?>">
+            <?php if (isset($_GET['success'])): ?>
+                ✅
+                <?php
+                switch ($_GET['success']) {
+                    case 'created':
+                        echo 'Achat créé avec succès (en attente de validation)';
+                        break;
+                    case 'validated':
+                        echo 'Tous les achats ont été validés !';
+                        break;
+                    case 'cancelled':
+                        echo 'Simulation annulée';
+                        break;
+                    case 'deleted':
+                        echo 'Achat supprimé';
+                        break;
+                }
+                ?>
+            <?php else: ?>
+                ⚠️ Erreur : <?php echo htmlspecialchars($_GET['error']); ?>
+            <?php endif; ?>
         </div>
-    <?php endif; ?>
-
-    <?php if (isset($_GET['error'])): ?>
-        <div class="error">⚠️ Erreur : <?php echo htmlspecialchars($_GET['error']); ?></div>
     <?php endif; ?>
 
     <div class="info-card">
@@ -53,10 +54,7 @@
         </select>
     </div>
 
-    <?php
-    $achatsEnAttente = array_filter($achats, fn($a) => !$a['valide']);
-    if (count($achatsEnAttente) > 0):
-    ?>
+    <?php if (count($achatsEnAttente) > 0): ?>
         <div class="actions-bar">
             <form method="POST" action="<?php echo $baseurl; ?>/achats/valider" style="display:inline;">
                 <button type="submit" class="btn btn-success" onclick="return confirm('Valider tous les achats en attente ?');">
@@ -86,7 +84,7 @@
                     <th>Article</th>
                     <th>Quantité</th>
                     <th>Montant HT</th>
-                    <th>Frais (<?php echo \models\Configuration::getValue(Flight::db(), 'FRAIS_ACHAT_PERCENT', 10, 'int'); ?>%)</th>
+                    <th>Frais (<?php echo $fraisPercent; ?>%)</th>
                     <th>Total TTC</th>
                     <th>Date</th>
                     <th>Statut</th>

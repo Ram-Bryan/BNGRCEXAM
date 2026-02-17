@@ -37,11 +37,19 @@ class AchatController
         // Argent disponible
         $argentDisponible = Achat::getArgentDisponible($this->db);
 
+        // Achats en attente
+        $achatsEnAttente = Achat::findEnAttente($this->db);
+
+        // Frais d'achat
+        $fraisPercent = (int)Configuration::getValueAs($this->db, 'FRAIS_ACHAT_PERCENT', 'int', 10);
+
         Flight::render('achat/list', [
             'achats' => $achats,
             'villes' => $villes,
             'ville_id' => $ville_id,
-            'argentDisponible' => $argentDisponible
+            'argentDisponible' => $argentDisponible,
+            'achatsEnAttente' => $achatsEnAttente,
+            'fraisPercent' => $fraisPercent
         ]);
     }
 
@@ -55,6 +63,12 @@ class AchatController
         // Besoins non satisfaits de catégorie nature ou material
         $besoins = Besoin::findBesoinsRestantsAchats($this->db, $ville_id ? (int)$ville_id : null);
 
+        // Calculer montant restant pour chaque besoin
+        foreach ($besoins as &$besoin) {
+            $besoin['montant_restant'] = $besoin['quantite_restante'] * $besoin['prix_unitaire'];
+        }
+        unset($besoin);
+
         // Villes pour filtre
         $villes = Ville::findAllComplete($this->db);
 
@@ -62,7 +76,7 @@ class AchatController
         $argentDisponible = Achat::getArgentDisponible($this->db);
 
         // Frais d'achat (depuis table configuration)
-        $fraisPercent = Configuration::getValue($this->db, 'FRAIS_ACHAT_PERCENT', 10, 'int');
+        $fraisPercent = (int)Configuration::getValueAs($this->db, 'FRAIS_ACHAT_PERCENT', 'int', 10);
 
         Flight::render('achat/besoins_restants', [
             'besoins' => $besoins,
@@ -104,7 +118,7 @@ class AchatController
             // Calculer le montant
             $prixUnitaire = (float)$besoinData['prix_unitaire'];
             $montantHt = $quantite * $prixUnitaire;
-            $fraisPercent = Configuration::getValue($this->db, 'FRAIS_ACHAT_PERCENT', 10, 'int');
+            $fraisPercent = (int)Configuration::getValueAs($this->db, 'FRAIS_ACHAT_PERCENT', 'int', 10);
             $montantFrais = $montantHt * ($fraisPercent / 100);
             $montantTotal = $montantHt + $montantFrais;
 

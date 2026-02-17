@@ -220,6 +220,15 @@ JOIN bngrc_ville v ON b.ville_id = v.id
 JOIN bngrc_region r ON v.idregion = r.id
 JOIN bngrc_type_articles ta ON b.type_article_id = ta.id;
 
+-- Vue simplifiée des achats avec infos besoin (pour validerTous)
+CREATE OR REPLACE VIEW v_bngrc_achats_avec_besoins AS
+SELECT 
+    a.*,
+    b.type_article_id,
+    b.ville_id
+FROM bngrc_achat a
+JOIN bngrc_besoin b ON a.besoin_id = b.id;
+
 -- Vue des dons en argent disponibles (dons argent - distributions validées)
 CREATE OR REPLACE VIEW v_bngrc_argent_disponible AS
 SELECT 
