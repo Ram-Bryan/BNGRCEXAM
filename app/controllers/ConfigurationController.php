@@ -8,19 +8,15 @@ use PDO;
 
 class ConfigurationController
 {
-    private PDO $db;
-
-    public function __construct()
-    {
-        $this->db = Flight::db();
-    }
+    // Controller methods are static; use Flight::db() inside each method
 
     /**
      * Afficher la liste des configurations
      */
-    public function list()
+    public static function list(): void
     {
-        $configurations = Configuration::findAll($this->db);
+        $db = Flight::db();
+        $configurations = Configuration::findAll($db);
 
         Flight::render('configuration/list', [
             'configurations' => $configurations
@@ -30,21 +26,22 @@ class ConfigurationController
     /**
      * Créer une nouvelle configuration
      */
-    public function create()
+    public static function create(): void
     {
+        $db = Flight::db();
         $nom = Flight::request()->data->nom;
         $valeur = Flight::request()->data->valeur;
 
         try {
             // Vérifier si le nom existe déjà
-            $existing = Configuration::findByNom($this->db, $nom);
+            $existing = Configuration::findByNom($db, $nom);
             if ($existing) {
                 Flight::redirect('/configurations?error=' . urlencode('Cette configuration existe déjà'));
                 return;
             }
 
             $config = new Configuration($nom, $valeur);
-            if ($config->create($this->db)) {
+            if ($config->create($db)) {
                 Flight::redirect('/configurations?success=created');
             } else {
                 Flight::redirect('/configurations?error=creation_failed');
@@ -57,14 +54,15 @@ class ConfigurationController
     /**
      * Mettre à jour une configuration
      */
-    public function update()
+    public static function update(): void
     {
+        $db = Flight::db();
         $id = Flight::request()->data->id;
         $nom = Flight::request()->data->nom;
         $valeur = Flight::request()->data->valeur;
 
         try {
-            $config = Configuration::findById($this->db, (int)$id);
+            $config = Configuration::findById($db, (int)$id);
             if (!$config) {
                 Flight::redirect('/configurations?error=not_found');
                 return;
@@ -73,7 +71,7 @@ class ConfigurationController
             $config->setNom($nom)
                    ->setValeur($valeur);
 
-            if ($config->update($this->db)) {
+            if ($config->update($db)) {
                 Flight::redirect('/configurations?success=updated');
             } else {
                 Flight::redirect('/configurations?error=update_failed');
@@ -86,16 +84,17 @@ class ConfigurationController
     /**
      * Supprimer une configuration
      */
-    public function delete($id)
+    public static function delete($id): void
     {
+        $db = Flight::db();
         try {
-            $config = Configuration::findById($this->db, (int)$id);
+            $config = Configuration::findById($db, (int)$id);
             if (!$config) {
                 Flight::redirect('/configurations?error=not_found');
                 return;
             }
 
-            if ($config->delete($this->db)) {
+            if ($config->delete($db)) {
                 Flight::redirect('/configurations?success=deleted');
             } else {
                 Flight::redirect('/configurations?error=delete_failed');

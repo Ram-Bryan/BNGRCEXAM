@@ -52,7 +52,7 @@ Flight::route('GET /stats', [StatsController::class, 'listVilles']);
 Flight::route('GET /stats/ville/@id', [StatsController::class, 'showVilleDetail']);
 
 // ==================== CONFIGURATION ====================
-Flight::route('GET /configurations', [new ConfigurationController(), 'list']);
-Flight::route('POST /configurations/create', [new ConfigurationController(), 'create']);
-Flight::route('POST /configurations/update', [new ConfigurationController(), 'update']);
-Flight::route('POST /configurations/delete/@id', [new ConfigurationController(), 'delete']);
+Flight::route('GET /configurations', [ConfigurationController::class, 'list']);
+Flight::route('POST /configurations/create', [ConfigurationController::class, 'create']);
+Flight::route('POST /configurations/update', [ConfigurationController::class, 'update']);
+Flight::route('POST /configurations/delete/@id', [ConfigurationController::class, 'delete']);

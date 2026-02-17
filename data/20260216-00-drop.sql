@@ -14,6 +14,14 @@ DROP VIEW IF EXISTS v_bngrc_besoins_satisfaction_avec_simulation;
 DROP VIEW IF EXISTS v_bngrc_achats_complets;
 DROP VIEW IF EXISTS v_bngrc_argent_disponible;
 DROP VIEW IF EXISTS v_bngrc_recapitulatif_besoins;
+DROP VIEW IF EXISTS v_bngrc_besoins_avec_articles;
+DROP VIEW IF EXISTS v_bngrc_dons_disponibles_par_type;
+DROP VIEW IF EXISTS v_bngrc_resume_simulation;
+DROP VIEW IF EXISTS v_bngrc_dons_avec_distribution;
+DROP VIEW IF EXISTS v_bngrc_total_dons_disponibles;
+DROP VIEW IF EXISTS v_bngrc_total_dons_nature;
+DROP VIEW IF EXISTS v_bngrc_total_dons_argent;
+DROP VIEW IF EXISTS v_bngrc_stats_par_categorie;
 
 -- Drop tables in dependency-safe order
 DROP TABLE IF EXISTS bngrc_distribution;
