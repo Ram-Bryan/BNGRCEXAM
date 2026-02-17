@@ -1,0 +1,76 @@
+Todolist - Réinitialisation complète des données
+Date: 2026-02-17
+
+Objectif: Fournir un plan complet et exécutable pour implémenter la fonctionnalité de réinitialisation (reset) depuis zéro : SQL d'initialisation, scripts de suppression, utilitaire PHP, contrôleur, routes, UI et JS, tests et documentation.
+
+1) Définir schéma initial
+- Créer `data/donneeinitial.sql` avec :
+  - Tables temporaires/initiales : `bngrc_besoin_initial`, `bngrc_dons_initial` (mêmes colonnes que `bngrc_besoin`/`bngrc_dons`).
+  - INSERTs pour l'état initial (ex : 12 besoins, 12 dons).
+- Critère d'acceptation : le fichier SQL s'importe sans erreur et crée/insère les données initiales.
+
+2) Mettre à jour drop.sql
+- Modifier `data/20260216-00-drop.sql` pour DROP IF EXISTS de toutes les tables et vues liées au reset (inclure `*_initial` et vues utilisées).
+- Critère : script supprime proprement les objets existants.
+
+3) Créer utilitaire Reset
+- Ajouter `app/utils/Reset.php` avec méthodes :
+  - `checkInitialDataExists(PDO $db): bool` (vérifie présence des tables initiales)
+  - `resetToInitialData(PDO $db): array` (supprime données, restaure à partir des `_initial` en transaction)
+  - `getResetStats(PDO $db): array` (retourne stats : nb besoins restaurés, nb dons restaurés, nb distributions supprimées, nb achats supprimés)
+- Notes techniques : utiliser transaction; placer tout DDL (`ALTER TABLE ... AUTO_INCREMENT`) hors transaction; protéger `commit()` par `if ($db->inTransaction())`.
+- Critère : méthode exécutable et idempotente, renvoie tableau de stats.
+
+4) Créer ResetController
+- Ajouter `app/controllers/ResetController.php` avec actions :
+  - `reset()` : POST, appelle `Reset::resetToInitialData()`, renvoie JSON {success,message,stats}
+  - `getStats()` : GET, appelle `Reset::getResetStats()`, renvoie JSON
+- Gérer exceptions et renvoyer codes HTTP appropriés.
+- Critère : endpoints fonctionnels et sécurisés (retours JSON clairs).
+
+5) Ajouter routes API
+- Mettre à jour `app/routes.php` :
+  - `POST /reset` → `ResetController::reset`
+  - `GET /reset/stats` → `ResetController::getStats`
+- Critère : routes disponibles et documentées.
+
+6) Ajouter bouton UI
+- Modifier `app/views/simulation/index.php` : ajouter bouton Réinitialiser visible, style d'alerte, `id` et `onclick="resetData()"`.
+- Critère : bouton présent et accessible uniquement aux utilisateurs autorisés (si contrôle côté view).
+
+7) Implémenter JS reset
+- Mettre à jour `public/assets/js/simulation.js` :
+  - Ajouter `resetData()` avec double confirmation, POST vers `/reset` (fetch), affichage des `stats` retournées et reload si succès.
+  - Prévoir gestion d'erreurs et spinner.
+- Critère : reset déclenchable depuis UI et UX clair.
+
+8) Tests manuels API
+- Commandes :
+  - `curl -X POST http://localhost:1234/reset -s | jq`
+  - `curl http://localhost:1234/reset/stats -s | jq`
+- Critère : réponses JSON valides avec `success:true` et stats cohérentes.
+
+9) Sécurité & autorisations
+- Ajouter vérification d'accès dans `ResetController::reset()` (ex. session/role admin via Flight ou middleware).
+- Critère : seuls les comptes autorisés peuvent lancer le reset.
+
+10) Documenter procédure
+- Créer `docs/RESET.md` avec :
+  - Objectif et précautions
+  - Comment importer `data/donneeinitial.sql`
+  - Comment exécuter le reset (UI et curl)
+  - Comment restaurer/rollback (si applicable)
+- Critère : documentation claire et reproducible.
+
+11) (Optionnel) Migration/Indexes
+- Ajouter `data/20260216-05-indexes.sql` si besoin pour optimiser vues après reset.
+- Critère : indexes créés sans erreur et mesurent amélioration.
+
+Étapes d'exécution recommandées :
+1. Écrire `data/donneeinitial.sql` et tester import dans une base de dev.
+2. Implémenter `app/utils/Reset.php` et `app/controllers/ResetController.php`.
+3. Ajouter routes et UI/JS minimal.
+4. Tester via `curl` puis via l'interface.
+5. Ajouter sécurité et documentation.
+
+Fin du todo.
