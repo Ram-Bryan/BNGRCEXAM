@@ -39,6 +39,7 @@ Flight::route('POST /achats/@id/delete', [new AchatController(), 'delete']);
 // ==================== SIMULATION ====================
 Flight::route('GET /simulation', [SimulationController::class, 'showSimulation']);
 Flight::route('POST /simulation/simuler', [SimulationController::class, 'simuler']);
+Flight::route('POST /simulation/simuler-petit', [SimulationController::class, 'simulerPlusPetit']);
 Flight::route('POST /simulation/valider', [SimulationController::class, 'valider']);
 Flight::route('POST /simulation/annuler', [SimulationController::class, 'annuler']);
 Flight::route('GET /simulation/etat', [SimulationController::class, 'getEtat']);

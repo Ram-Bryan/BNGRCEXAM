@@ -10,42 +10,36 @@
         <a href="<?php echo $baseurl; ?>/" class="btn">🏠 Accueil</a>
     </div>
 
-    <!-- Zone de simulation -->
-    <div class="simulation-box">
-        <h2>🎯 Distribution des Dons(Plus ancien)</h2>
-        <p style="opacity: 0.9; margin-bottom: 20px;">
-            1. Cliquez sur <strong>SIMULER</strong> pour prévisualiser la distribution<br>
-            2. Vérifiez les attributions proposées<br>
-            3. Cliquez sur <strong>DISTRIBUER</strong> pour valider définitivement
-        </p>
-        <div class="buttons-row">
-            <button type="button" class="btn btn-warning btn-lg" id="btn-simuler" onclick="simuler()">
-                SIMULER
-            </button>
-            <button type="button" class="btn btn-success btn-lg" id="btn-distribuer" onclick="valider()" <?php echo empty($simulations) ? 'disabled' : ''; ?>>
-                DISTRIBUER
-            </button>
-            <?php if (!empty($simulations)): ?>
-                <button type="button" class="btn btn-danger btn-lg" onclick="annuler()">
-                    Annuler simulation
-                </button>
-            <?php endif; ?>
+    <!-- Zone de simulation - Formulaire unique avec sélecteur de méthode -->
+    <div class="simulation-box" id="simulation-box-main">
+        <div id="header-simulation" style="padding: 20px; margin: -20px -20px 20px -20px; border-radius: 5px 5px 0 0; background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); color: white;">
+            <h2 style="margin: 0; color: white;">🎯 Distribution des Dons</h2>
         </div>
-    </div>
+        
+        <!-- Sélecteur de méthode -->
+        <div style="margin-bottom: 25px; background: #f8f9fa; padding: 20px; border-radius: 8px;">
+            <label style="display: block; margin-bottom: 10px; font-weight: bold;">📌 Choisissez une méthode de distribution :</label>
+            <select id="methode-distribution" onchange="updateMethodDescription(); updatePageTheme();" style="width: 100%; padding: 10px; border: 2px solid #ccc; border-radius: 5px; font-size: 16px;">
+                <option value="ancien">📅 Plus ancien - Les dons aux demandes les plus anciennes</option>
+                <option value="petit">📊 Plus petit - Les dons aux quantités les plus petites</option>
+            </select>
+        </div>
 
-    <div class="simulation-box">
-        <h2>🎯 Distribution des Dons(Plus ancien)</h2>
-        <p style="opacity: 0.9; margin-bottom: 20px;">
+        <!-- Description de la méthode sélectionnée -->
+        <p id="method-description" style="opacity: 0.9; margin-bottom: 20px; background: #e7f3ff; padding: 15px; border-radius: 5px; border-left: 4px solid #2196F3;">
+            <strong>Méthode sélectionnée :</strong> Les dons vont aux demandes les plus anciennes en premier<br>
             1. Cliquez sur <strong>SIMULER</strong> pour prévisualiser la distribution<br>
             2. Vérifiez les attributions proposées<br>
             3. Cliquez sur <strong>DISTRIBUER</strong> pour valider définitivement
         </p>
+
+        <!-- Boutons d'action -->
         <div class="buttons-row">
             <button type="button" class="btn btn-warning btn-lg" id="btn-simuler" onclick="simuler()">
-                SIMULER
+                👁️ SIMULER
             </button>
             <button type="button" class="btn btn-success btn-lg" id="btn-distribuer" onclick="valider()" <?php echo empty($simulations) ? 'disabled' : ''; ?>>
-                DISTRIBUER
+                ✅ DISTRIBUER
             </button>
             <?php if (!empty($simulations)): ?>
                 <button type="button" class="btn btn-danger btn-lg" onclick="annuler()">

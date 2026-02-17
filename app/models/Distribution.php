@@ -239,6 +239,83 @@ class Distribution
     }
 
     /**
+     * Créer les distributions automatiquement (simulation) - Priorité aux petites quantités restantes
+     * Dispatch en commençant par les besoins avec les plus petites quantités restantes
+     */
+    public static function simulerDistributionPlusPetit(PDO $db): array
+    {
+        // D'abord, supprimer les anciennes simulations
+        self::supprimerSimulations(db: $db);
+
+        $resultats = [];
+
+        // Récupérer les besoins non satisfaits avec quantités restantes, triés par quantité restante (les plus petits en premier)
+        $sqlBesoins = "SELECT 
+                        b.id,
+                        b.ville_id,
+                        b.type_article_id,
+                        b.quantite,
+                        b.date_demande,
+                        ta.nom AS article_nom,
+                        ta.categorie,
+                        ta.prix_unitaire,
+                        ta.unite,
+                        (b.quantite - COALESCE(SUM(CASE WHEN dist.est_simulation = FALSE THEN dist.quantite ELSE 0 END), 0)) AS quantite_restante
+                    FROM bngrc_besoin b
+                    JOIN bngrc_type_articles ta ON b.type_article_id = ta.id
+                    LEFT JOIN bngrc_distribution dist ON dist.besoin_id = b.id
+                    WHERE ta.categorie != 'argent'
+                    GROUP BY b.id, b.type_article_id
+                    HAVING quantite_restante > 0
+                    ORDER BY quantite_restante ASC, b.id ASC";
+        $stmtBesoins = $db->query($sqlBesoins);
+        $besoins = $stmtBesoins->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($besoins as $besoin) {
+            $quantiteRestante = $besoin['quantite_restante'];
+
+            if ($quantiteRestante <= 0) {
+                continue;
+            }
+
+            // Récupérer les dons disponibles du même type d'article
+            $sqlDons = "SELECT * FROM v_bngrc_dons_disponibles_par_type
+                        WHERE type_article_id = :type_article_id
+                        ORDER BY date_don ASC, id ASC";
+            $stmtDons = $db->prepare($sqlDons);
+            $stmtDons->execute([':type_article_id' => $besoin['type_article_id']]);
+            $dons = $stmtDons->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($dons as $don) {
+                if ($quantiteRestante <= 0) break;
+
+                $quantiteADistribuer = min($quantiteRestante, $don['quantite_disponible']);
+
+                if ($quantiteADistribuer > 0) {
+                    // Créer la distribution (simulation)
+                    $dist = new Distribution();
+                    $dist->setDonId($don['id'])
+                        ->setBesoinId($besoin['id'])
+                        ->setQuantite($quantiteADistribuer)
+                        ->setDateDistribution(date('Y-m-d'))
+                        ->setEstSimulation(true);
+                    $dist->create($db);
+
+                    $resultats[] = [
+                        'don_id' => $don['id'],
+                        'besoin_id' => $besoin['id'],
+                        'quantite' => $quantiteADistribuer
+                    ];
+
+                    $quantiteRestante -= $quantiteADistribuer;
+                }
+            }
+        }
+
+        return $resultats;
+    }
+
+    /**
      * Récupérer un résumé de la simulation actuelle
      */
     public static function getResumeSimulation(PDO $db): array

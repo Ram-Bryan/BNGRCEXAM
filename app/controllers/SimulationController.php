@@ -93,6 +93,34 @@ class SimulationController
     }
 
     /**
+     * Lancer la simulation avec priorité aux petites quantités
+     */
+    public static function simulerPlusPetit()
+    {
+        try {
+            $db = Flight::db();
+            $resultats = Distribution::simulerDistributionPlusPetit($db);
+            $resume = Distribution::getResumeSimulation($db);
+
+            // Récupérer les détails de la simulation
+            $simulations = Distribution::findSimulations($db);
+
+            Flight::json([
+                'success' => true,
+                'message' => count($resultats) . ' distribution(s) simulée(s) - Priorité aux petites quantités',
+                'nb_distributions' => count($resultats),
+                'resume' => $resume,
+                'simulations' => $simulations
+            ]);
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Valider la simulation (rendre les distributions définitives)
      */
     public static function valider()
