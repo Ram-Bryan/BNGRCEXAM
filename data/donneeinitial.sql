@@ -14,22 +14,22 @@ CREATE TABLE IF NOT EXISTS bngrc_besoin_initial (
     id INT AUTO_INCREMENT PRIMARY KEY,
     ville_id INT NOT NULL,
     type_article_id INT NOT NULL,
-    quantite DECIMAL(10,2) NOT NULL,
+    quantite INT NOT NULL,
     date_demande DATE NOT NULL,
     FOREIGN KEY (ville_id) REFERENCES bngrc_ville(id) ON DELETE CASCADE,
     FOREIGN KEY (type_article_id) REFERENCES bngrc_type_articles(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 
 -- Table de sauvegarde des dons initiaux
 CREATE TABLE IF NOT EXISTS bngrc_dons_initial (
     id INT AUTO_INCREMENT PRIMARY KEY,
     type_article_id INT NOT NULL,
-    quantite DECIMAL(10,2) NOT NULL,
+    quantite INT NOT NULL,
     date_don DATE NOT NULL,
-    donateur VARCHAR(255) NOT NULL,
-    statut VARCHAR(50) DEFAULT 'disponible',
+    donateur VARCHAR(200) DEFAULT 'Anonyme',
+    statut ENUM('disponible', 'distribue') DEFAULT 'disponible',
     FOREIGN KEY (type_article_id) REFERENCES bngrc_type_articles(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 
 -- ============================================================
 -- INSERTION DES DONNÉES INITIALES - BESOINS

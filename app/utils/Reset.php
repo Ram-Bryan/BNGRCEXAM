@@ -29,13 +29,6 @@ class Reset
             $db->exec("DELETE FROM bngrc_dons");
             $db->exec("DELETE FROM bngrc_besoin");
 
-            // 2️⃣ Réinitialiser les AUTO_INCREMENT
-            $db->exec("ALTER TABLE bngrc_besoin AUTO_INCREMENT = 1");
-            $db->exec("ALTER TABLE bngrc_dons AUTO_INCREMENT = 1");
-            $db->exec("ALTER TABLE bngrc_distribution AUTO_INCREMENT = 1");
-            $db->exec("ALTER TABLE bngrc_historique_besoin AUTO_INCREMENT = 1");
-            $db->exec("ALTER TABLE bngrc_achat AUTO_INCREMENT = 1");
-
             // 3️⃣ Recharger les données initiales depuis les tables de sauvegarde
             $db->exec("INSERT INTO bngrc_besoin (id, ville_id, type_article_id, quantite, date_demande) 
                        SELECT id, ville_id, type_article_id, quantite, date_demande 
@@ -51,8 +44,16 @@ class Reset
                        FROM bngrc_besoin");
 
             // Valider la transaction
-            $db->commit();
+            if ($db->inTransaction()) {
+                $db->commit();
+            }
 
+            // 4️⃣ Réinitialiser les AUTO_INCREMENT (hors transaction car ALTER TABLE force un commit)
+            $db->exec("ALTER TABLE bngrc_besoin AUTO_INCREMENT = 1");
+            $db->exec("ALTER TABLE bngrc_dons AUTO_INCREMENT = 1");
+            $db->exec("ALTER TABLE bngrc_distribution AUTO_INCREMENT = 1");
+            $db->exec("ALTER TABLE bngrc_historique_besoin AUTO_INCREMENT = 1");
+            $db->exec("ALTER TABLE bngrc_achat AUTO_INCREMENT = 1");
             return [
                 'success' => true,
                 'message' => 'Données réinitialisées avec succès. Le système est revenu à son état initial.'
