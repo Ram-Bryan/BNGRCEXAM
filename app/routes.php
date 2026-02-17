@@ -8,6 +8,7 @@ use controllers\SimulationController;
 use controllers\RecapController;
 use controllers\HomeController;
 use controllers\ConfigurationController;
+use controllers\ResetController;
 
 // ==================== ACCUEIL ====================
 Flight::route('GET /', [new HomeController(), 'index']);
@@ -56,3 +57,7 @@ Flight::route('GET /configurations', [ConfigurationController::class, 'list']);
 Flight::route('POST /configurations/create', [ConfigurationController::class, 'create']);
 Flight::route('POST /configurations/update', [ConfigurationController::class, 'update']);
 Flight::route('POST /configurations/delete/@id', [ConfigurationController::class, 'delete']);
+
+// ==================== RÉINITIALISATION ====================
+Flight::route('POST /reset', [ResetController::class, 'reset']);
+Flight::route('GET /reset/stats', [ResetController::class, 'getStats']);
