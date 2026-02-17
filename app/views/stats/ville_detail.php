@@ -55,24 +55,24 @@
             <tbody>
                 <?php foreach ($besoins as $besoin): ?>
                     <tr>
-                        <td><strong>#<?php echo $besoin->id; ?></strong></td>
-                        <td><?php echo htmlspecialchars($besoin->article_nom); ?></td>
+                        <td><strong>#<?php echo $besoin->getId(); ?></strong></td>
+                        <td><?php echo htmlspecialchars($besoin->getArticleNom()); ?></td>
                         <td>
                             <span class="badge <?php echo $besoin->getCategorieClass(); ?>">
-                                <?php echo ucfirst($besoin->categorie); ?>
+                                <?php echo ucfirst($besoin->getCategorie()); ?>
                             </span>
                         </td>
-                        <td><?php echo $besoin->getQuantiteFormatee(); ?> <?php echo htmlspecialchars($besoin->unite); ?></td>
-                        <td><?php echo number_format($besoin->quantite_recue ?? 0); ?> <?php echo htmlspecialchars($besoin->unite); ?></td>
+                        <td><?php echo $besoin->getQuantiteFormatee(); ?> <?php echo htmlspecialchars($besoin->getUnite()); ?></td>
+                        <td><?php echo number_format($besoin->getQuantiteRecue() ?? 0); ?> <?php echo htmlspecialchars($besoin->getUnite()); ?></td>
                         <td>
-                            <span class="<?php echo ($besoin->quantite_restante ?? 0) > 0 ? 'ratio-low' : 'ratio-complete'; ?>">
-                                <?php echo number_format($besoin->quantite_restante ?? 0); ?> <?php echo htmlspecialchars($besoin->unite); ?>
+                            <span class="<?php echo ($besoin->getQuantiteRestante() ?? 0) > 0 ? 'ratio-low' : 'ratio-complete'; ?>">
+                                <?php echo number_format($besoin->getQuantiteRestante() ?? 0); ?> <?php echo htmlspecialchars($besoin->getUnite()); ?>
                             </span>
                         </td>
                         <td><?php echo $besoin->getDateFormatee(); ?></td>
                         <td>
                             <?php 
-                            $ratio = $besoin->ratio_satisfaction ?? 0;
+                            $ratio = $besoin->getRatioSatisfaction() ?? 0;
                             $class = $ratio >= 100 ? 'progress-complete' : ($ratio >= 50 ? 'progress-partial' : 'progress-low');
                             $width = min($ratio, 100);
                             ?>

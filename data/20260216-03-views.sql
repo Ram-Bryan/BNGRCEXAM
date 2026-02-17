@@ -323,3 +323,72 @@ JOIN bngrc_dons d ON dist.don_id = d.id
 JOIN bngrc_type_articles ta ON d.type_article_id = ta.id
 WHERE dist.est_simulation = TRUE
     AND ta.categorie != 'argent';
+
+-- ============================================================
+-- VUES OPTIMISATION RÉCAPITULATION
+-- ============================================================
+
+-- Vue des dons avec quantité distribuée (pour calculs disponibilité)
+CREATE OR REPLACE VIEW v_bngrc_dons_avec_distribution AS
+SELECT 
+    d.id,
+    d.type_article_id,
+    d.quantite,
+    d.date_don,
+    d.donateur,
+    d.statut,
+    ta.nom AS article_nom,
+    ta.categorie,
+    ta.prix_unitaire,
+    ta.unite,
+    COALESCE(dist.quantite_distribuee, 0) AS quantite_distribuee,
+    d.quantite - COALESCE(dist.quantite_distribuee, 0) AS quantite_disponible
+FROM bngrc_dons d
+JOIN bngrc_type_articles ta ON d.type_article_id = ta.id
+LEFT JOIN (
+    SELECT don_id, SUM(quantite) AS quantite_distribuee
+    FROM bngrc_distribution 
+    WHERE est_simulation = FALSE
+    GROUP BY don_id
+) dist ON dist.don_id = d.id;
+
+-- Vue du total des dons disponibles (toutes catégories)
+CREATE OR REPLACE VIEW v_bngrc_total_dons_disponibles AS
+SELECT 
+    COALESCE(SUM(quantite_disponible * COALESCE(prix_unitaire, 1)), 0) AS total
+FROM v_bngrc_dons_avec_distribution;
+
+-- Vue du total des dons nature/material (non argent)
+CREATE OR REPLACE VIEW v_bngrc_total_dons_nature AS
+SELECT 
+    COALESCE(SUM(quantite * COALESCE(prix_unitaire, 1)), 0) AS total
+FROM v_bngrc_dons_avec_distribution
+WHERE categorie != 'argent';
+
+-- Vue du total des dons en argent
+CREATE OR REPLACE VIEW v_bngrc_total_dons_argent AS
+SELECT 
+    COALESCE(SUM(quantite), 0) AS total
+FROM v_bngrc_dons_avec_distribution
+WHERE categorie = 'argent';
+
+-- Vue des statistiques par catégorie
+CREATE OR REPLACE VIEW v_bngrc_stats_par_categorie AS
+SELECT 
+    ta.categorie,
+    COALESCE(SUM(b.quantite * ta.prix_unitaire), 0) AS montant_total,
+    COALESCE(SUM(COALESCE(dist.quantite_distribuee, 0) * ta.prix_unitaire), 0) AS montant_satisfait,
+    CASE 
+        WHEN SUM(b.quantite * ta.prix_unitaire) > 0 
+        THEN ROUND((SUM(COALESCE(dist.quantite_distribuee, 0) * ta.prix_unitaire) / SUM(b.quantite * ta.prix_unitaire)) * 100, 2)
+        ELSE 0
+    END AS ratio_satisfaction
+FROM bngrc_besoin b
+JOIN bngrc_type_articles ta ON b.type_article_id = ta.id
+LEFT JOIN (
+    SELECT besoin_id, SUM(quantite) AS quantite_distribuee
+    FROM bngrc_distribution 
+    WHERE est_simulation = FALSE
+    GROUP BY besoin_id
+) dist ON dist.besoin_id = b.id
+GROUP BY ta.categorie;

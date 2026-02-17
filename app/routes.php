@@ -44,8 +44,8 @@ Flight::route('POST /simulation/annuler', [SimulationController::class, 'annuler
 Flight::route('GET /simulation/etat', [SimulationController::class, 'getEtat']);
 
 // ==================== RÉCAPITULATION ====================
-Flight::route('GET /recap', [new RecapController(), 'showRecap']);
-Flight::route('GET /recap/ajax', [new RecapController(), 'getRecapAjax']);
+Flight::route('GET /recap', [RecapController::class, 'showRecap']);
+Flight::route('GET /recap/ajax', [RecapController::class, 'getRecapAjax']);
 
 // ==================== STATISTIQUES ====================
 Flight::route('GET /stats', [new StatsController(), 'listVilles']);
