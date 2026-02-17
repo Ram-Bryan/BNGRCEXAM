@@ -11,24 +11,17 @@
         </div>
     <?php endif; ?>
 
-    <?php 
-    $totalBesoins = array_sum(array_column($villes, 'nombre_besoins'));
-    $totalDemande = array_sum(array_column($villes, 'total_quantite_demandee'));
-    $totalRecue = array_sum(array_column($villes, 'total_quantite_recue'));
-    $ratioGlobal = $totalDemande > 0 ? round($totalRecue * 100 / $totalDemande, 1) : 0;
-    ?>
-
     <div class="stat-cards">
         <div class="stat-card">
-            <div class="stat-value"><?php echo count($villes); ?></div>
+            <div class="stat-value"><?php echo $stats['nombre_total_villes']; ?></div>
             <div class="stat-label">Villes</div>
         </div>
         <div class="stat-card green">
-            <div class="stat-value"><?php echo $totalBesoins; ?></div>
+            <div class="stat-value"><?php echo $stats['nombre_total_besoins']; ?></div>
             <div class="stat-label">Total Besoins</div>
         </div>
         <div class="stat-card orange">
-            <div class="stat-value"><?php echo $ratioGlobal; ?>%</div>
+            <div class="stat-value"><?php echo number_format($stats['ratio_satisfaction_global'], 1); ?>%</div>
             <div class="stat-label">Satisfaction Globale</div>
         </div>
     </div>

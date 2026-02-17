@@ -1,108 +1,603 @@
-/* CSS for besoins pages */
-th {
-    background-color: #007bff;
-    color: white;
-    padding: 8px 12px;
+/**
+ * ============================================================
+ * BESOINS.CSS — Gestion des Besoins Humanitaires
+ * Page Header + Filters + Progress Mini + Status Badges + Modal
+ * ============================================================
+ */
+
+/* ============================================================
+   PAGE HEADER — Breadcrumb & Title
+   ============================================================ */
+
+.page-header {
+  background-color: var(--bg-card);
+  border-bottom: var(--border-width) solid var(--color-neutral-200);
+  padding: var(--space-6) 0;
+  margin-bottom: var(--space-8);
 }
 
-.actions {
-    display: flex;
-    gap: 8px;
+.page-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4);
 }
 
-/* Timeline Styles - clearer visual hierarchy */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-neutral-500);
+  margin-bottom: var(--space-2);
+}
+
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.breadcrumb-separator {
+  color: var(--color-neutral-300);
+}
+
+.breadcrumb-link {
+  color: var(--color-secondary);
+  text-decoration: none;
+  transition: color var(--transition-base);
+}
+
+.breadcrumb-link:hover {
+  color: var(--color-primary);
+}
+
+.page-title {
+  font-size: var(--font-size-3xl);
+  font-family: var(--font-heading);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-neutral-900);
+  margin: 0;
+}
+
+/* ============================================================
+   FILTERS BAR — Responsive Form Controls
+   ============================================================ */
+
+.filters-bar {
+  background-color: var(--bg-card);
+  border: var(--border-width) solid var(--color-neutral-200);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-6);
+  margin-bottom: var(--space-6);
+  box-shadow: var(--shadow-sm);
+}
+
+.filters-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: flex-end;
+}
+
+.filter-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+.filter-label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-neutral-700);
+  margin-bottom: var(--space-2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.filter-select,
+.filter-input {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width) solid var(--color-neutral-300);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-base);
+  transition: all var(--transition-base);
+  background-color: var(--bg-card);
+}
+
+.filter-select:focus,
+.filter-input:focus {
+  outline: none;
+  border-color: var(--color-secondary);
+  box-shadow: 0 0 0 3px rgba(27, 77, 142, 0.1);
+}
+
+.filter-actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.btn-filter {
+  padding: var(--space-3) var(--space-6);
+  white-space: nowrap;
+}
+
+/* ============================================================
+   TABLE BESOINS — Status Colors & Progress Mini
+   ============================================================ */
+
+.besoins-table {
+  width: 100%;
+  background-color: var(--bg-card);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.besoins-table thead {
+  background-color: var(--color-neutral-100);
+}
+
+.besoins-table th {
+  padding: var(--space-4) var(--space-6);
+  text-align: left;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-neutral-700);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--color-neutral-200);
+}
+
+.besoins-table tbody tr {
+  border-bottom: var(--border-width) solid var(--color-neutral-200);
+  transition: background-color var(--transition-base);
+}
+
+.besoins-table tbody tr:hover {
+  background-color: var(--color-neutral-50);
+}
+
+.besoins-table td {
+  padding: var(--space-4) var(--space-6);
+  font-size: var(--font-size-base);
+  color: var(--color-neutral-900);
+}
+
+/* Progress Mini — Inline 6px Height Progress */
+.progress-mini {
+  height: 6px;
+  background-color: var(--color-neutral-200);
+  border-radius: var(--border-radius-full);
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-mini-bar {
+  height: 100%;
+  border-radius: var(--border-radius-full);
+  transition: width var(--transition-slow);
+  position: relative;
+}
+
+.progress-mini-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+/* Status-based Colors */
+.progress-mini-bar.status-satisfait {
+  background-color: var(--color-success);
+}
+
+.progress-mini-bar.status-partiel {
+  background: linear-gradient(90deg, var(--color-success) 0%, var(--color-accent) 100%);
+}
+
+.progress-mini-bar.status-en-attente {
+  background-color: var(--color-neutral-300);
+}
+
+.progress-mini-bar.status-critique {
+  background-color: var(--color-danger);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.progress-mini-text {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--color-neutral-500);
+  margin-top: var(--space-1);
+}
+
+/* ============================================================
+   STATUS BADGES — Color-Coded with Pulse Animation
+   ============================================================ */
+
+.badge-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge-status::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.badge-status.status-en-attente {
+  background-color: rgba(113, 128, 150, 0.1);
+  color: var(--color-neutral-700);
+}
+
+.badge-status.status-en-attente::before {
+  background-color: var(--color-neutral-400);
+}
+
+.badge-status.status-partiel {
+  background-color: rgba(244, 166, 35, 0.1);
+  color: var(--color-accent-dark);
+}
+
+.badge-status.status-partiel::before {
+  background-color: var(--color-accent);
+}
+
+.badge-status.status-satisfait {
+  background-color: rgba(26, 122, 74, 0.1);
+  color: var(--color-success-dark);
+}
+
+.badge-status.status-satisfait::before {
+  background-color: var(--color-success);
+}
+
+.badge-status.status-critique {
+  background-color: rgba(200, 16, 46, 0.1);
+  color: var(--color-danger);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.badge-status.status-critique::before {
+  background-color: var(--color-danger);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* ============================================================
+   MODAL BESOIN — Edit/Create Form Overlay
+   ============================================================ */
+
+.modal-besoin {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+}
+
+.modal-besoin.is-active {
+  display: flex;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.modal-container {
+  position: relative;
+  z-index: 10;
+  background-color: var(--bg-card);
+  border-radius: var(--border-radius-xl);
+  max-width: 580px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-2xl);
+  animation: scaleIn 0.3s ease;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-6);
+  border-bottom: var(--border-width) solid var(--color-neutral-200);
+}
+
+.modal-title {
+  font-size: var(--font-size-2xl);
+  font-family: var(--font-heading);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-neutral-900);
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: var(--font-size-2xl);
+  color: var(--color-neutral-400);
+  cursor: pointer;
+  padding: var(--space-2);
+  line-height: 1;
+  transition: color var(--transition-base);
+}
+
+.modal-close:hover {
+  color: var(--color-neutral-900);
+}
+
+.modal-body {
+  padding: var(--space-6);
+}
+
+.modal-form-group {
+  margin-bottom: var(--space-5);
+}
+
+.modal-form-group:last-child {
+  margin-bottom: 0;
+}
+
+.modal-label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-neutral-700);
+  margin-bottom: var(--space-2);
+}
+
+.modal-label.required::after {
+  content: ' *';
+  color: var(--color-danger);
+}
+
+.modal-input,
+.modal-select,
+.modal-textarea {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width) solid var(--color-neutral-300);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-base);
+  font-family: var(--font-body);
+  transition: all var(--transition-base);
+}
+
+.modal-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.modal-input:focus,
+.modal-select:focus,
+.modal-textarea:focus {
+  outline: none;
+  border-color: var(--color-secondary);
+  box-shadow: 0 0 0 3px rgba(27, 77, 142, 0.1);
+}
+
+.modal-input.error,
+.modal-select.error,
+.modal-textarea.error {
+  border-color: var(--color-danger);
+}
+
+.modal-error-text {
+  font-size: var(--font-size-xs);
+  color: var(--color-danger);
+  margin-top: var(--space-1);
+  display: block;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  border-top: var(--border-width) solid var(--color-neutral-200);
+}
+
+/* ============================================================
+   EMPTY STATE — No Results Illustration
+   ============================================================ */
+
+.empty-state {
+  text-align: center;
+  padding: var(--space-16) var(--space-6);
+  background-color: var(--bg-card);
+  border-radius: var(--border-radius-lg);
+  border: 2px dashed var(--color-neutral-300);
+}
+
+.empty-state-icon {
+  font-size: 4rem;
+  color: var(--color-neutral-300);
+  margin-bottom: var(--space-4);
+  opacity: 0.5;
+}
+
+.empty-state-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-neutral-700);
+  margin-bottom: var(--space-2);
+}
+
+.empty-state-description {
+  font-size: var(--font-size-base);
+  color: var(--color-neutral-500);
+  margin-bottom: var(--space-6);
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.empty-state-action {
+  margin-top: var(--space-4);
+}
+
+/* ============================================================
+   HISTORIQUE BESOINS — Timeline View
+   ============================================================ */
+
 .timeline {
-    position: relative;
-    padding-left: 60px;
-    margin-top: 30px;
-    max-width: 900px;
+  position: relative;
+  padding-left: var(--space-8);
+  margin: var(--space-6) 0;
 }
 
 .timeline::before {
-    content: '';
-    position: absolute;
-    left: 24px;
-    top: 0;
-    bottom: 0;
-    width: 4px;
-    background: linear-gradient(to bottom, #e9f2ff, #cfe6ff);
-    border-radius: 4px;
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, var(--color-primary), var(--color-neutral-200));
 }
 
 .timeline-item {
-    position: relative;
-    padding: 18px 22px;
-    margin-bottom: 18px;
-    background: #ffffff;
-    border-radius: 10px;
-    border-left: 6px solid rgba(0, 123, 255, 0.08);
-    box-shadow: 0 6px 16px rgba(28, 56, 86, 0.04);
-    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  position: relative;
+  padding-bottom: var(--space-8);
 }
 
-.timeline-item:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(28, 56, 86, 0.08);
+.timeline-item:last-child {
+  padding-bottom: 0;
 }
 
-/* Marker */
-.timeline-item::before {
-    content: '';
-    position: absolute;
-    left: 14px;
-    top: 20px;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: #fff;
-    box-shadow: 0 0 0 4px #e6f2ff;
-    border: 3px solid #007bff;
+.timeline-marker {
+  position: absolute;
+  left: calc(var(--space-8) * -1 - 6px);
+  top: 0;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  border: 3px solid var(--bg-card);
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.timeline-content {
+  background-color: var(--bg-card);
+  border: var(--border-width) solid var(--color-neutral-200);
+  border-radius: var(--border-radius-md);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-sm);
 }
 
 .timeline-date {
-    color: #495057;
-    font-size: 14px;
-    margin-bottom: 8px;
-    font-weight: 600;
+  font-size: var(--font-size-xs);
+  color: var(--color-neutral-500);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-2);
 }
 
-.timeline-quantite {
-    font-size: 20px;
-    color: #0b5ed7;
-    font-weight: 700;
-    display: inline-block;
-    margin-top: 6px;
+.timeline-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-neutral-900);
+  margin-bottom: var(--space-1);
 }
 
-/* Alternate background for easier scanning */
-.timeline-item:nth-child(odd) {
-    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
-}
-.timeline-item:nth-child(even) {
-    background: linear-gradient(180deg, #fbfbfc 0%, #ffffff 100%);
+.timeline-description {
+  font-size: var(--font-size-sm);
+  color: var(--color-neutral-600);
 }
 
-.timeline-item .meta {
-    color: #6c757d;
-    font-size: 13px;
+/* ============================================================
+   RESPONSIVE BESOINS
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .page-header-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .filters-grid {
+    flex-direction: column;
+  }
+
+  .filter-group {
+    min-width: 100%;
+  }
+
+  .filter-actions {
+    width: 100%;
+  }
+
+  .btn-filter {
+    flex: 1;
+  }
+
+  .besoins-table {
+    font-size: var(--font-size-sm);
+  }
+
+  .besoins-table th,
+  .besoins-table td {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  /* Responsive Table — Horizontal Scroll */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .modal-container {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .timeline {
+    padding-left: var(--space-6);
+  }
 }
 
-/* Compact view for small screens */
-@media (max-width: 700px) {
-    .timeline { padding-left: 18px; }
-    .timeline::before { left: 8px; }
-    .timeline-item::before { left: -2px; top: 18px; }
-    .timeline-item { padding: 14px; }
-    .timeline-quantite { font-size: 18px; }
-}
+@media (max-width: 480px) {
+  .page-title {
+    font-size: var(--font-size-xl);
+  }
 
-/* Message div styling */
-.message {
-    padding: 12px 18px;
-    margin-bottom: 18px;
-    border-radius: 8px;
-    background-color: #e9f7ef;
-    border-left: 5px solid #1e7e34;
-    color: #155724;
-    font-weight: 600;
+  .badge-status {
+    font-size: 0.65rem;
+    padding: var(--space-1) var(--space-3);
+  }
+
+  .progress-mini-text {
+    font-size: 0.65rem;
+  }
 }

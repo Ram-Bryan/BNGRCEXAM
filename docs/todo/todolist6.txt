@@ -1,0 +1,280 @@
+═══════════════════════════════════════════════════════════════════
+TODOLIST - MODULE STATISTIQUES - RECONSTRUCTION COMPLÈTE
+═══════════════════════════════════════════════════════════════════
+📅 Date: 17 février 2026
+📦 Statut: À démarrer - Phase 0 (Planification)
+🎯 Objectif: Stats par ville avec DAO pattern et controller static
+
+═══════════════════════════════════════════════════════════════════
+
+📋 PHASE 1 : BASE DE DONNÉES (Estimation: 5min)
+───────────────────────────────────────────────────────────────────
+
+1.1 Vérifier les vues existantes
+    □ v_bngrc_stats_villes : ville_id, ville_nom, region_nom, nbsinistres,
+      nombre_besoins, total_quantite_demandee, total_quantite_recue, ratio_satisfaction_global
+    □ v_bngrc_besoins_satisfaction : utilisée pour besoins par ville
+    📍 Fichier: data/20260216-03-views.sql
+    ⏱ Temps estimé : 3 min (vérification)
+    ✓ État initial : vues déjà créées et fonctionnelles
+
+1.2 Créer vue pour statistiques globales (optionnel)
+    □ v_bngrc_stats_global : COUNT villes, SUM besoins, ratio global
+    □ Cette vue peut consolider les stats affichées en haut de stats/villes.php
+    ⏱ Temps estimé : 2 min
+    ✓ État initial : actuellement calculé en PHP dans la vue
+
+
+📋 PHASE 2 : DTO (Estimation: 25min)
+───────────────────────────────────────────────────────────────────
+
+2.1 Créer DTOStats.php (app/dto/)
+    □ Namespace dto, use PDO
+    □ Properties PRIVÉES pour stats globales :
+      - nombre_total_villes: int
+      - nombre_total_besoins: int
+      - total_quantite_demandee: float
+      - total_quantite_recue: float
+      - ratio_satisfaction_global: float
+    □ Properties pour cache (optionnel) :
+      - villes: array (liste des villes)
+    □ Constructor vide
+    ⏱ Temps estimé : 4 min
+    ✓ État initial : classe vide, aucune donnée
+
+2.2 Getters et Setters DTOStats.php
+    □ 5 getters : getNombreTotalVilles(), getNombreTotalBesoins(), 
+      getTotalQuantiteDemandee(), getTotalQuantiteRecue(), getRatioSatisfactionGlobal()
+    □ 5 setters avec fluent interface (return $this)
+    □ getVilles() / setVilles() pour cache
+    ⏱ Temps estimé : 3 min
+
+2.3 Méthodes DAO statiques DTOStats.php (4 méthodes)
+    □ static getAllVilles(PDO $db): array
+      → SELECT * FROM v_bngrc_stats_villes ORDER BY region_nom, ville_nom
+      → Retourne array de toutes les villes avec leurs stats
+    
+    □ static getVilleById(PDO $db, int $id): ?array
+      → SELECT * FROM v_bngrc_stats_villes WHERE ville_id = :id
+      → Retourne array d'une ville ou null
+    
+    □ static getBesoinsVille(PDO $db, int $ville_id): array
+      → Appelle Besoin::findBesoinsSatisfactionByVille($db, $ville_id)
+      → Convertit avec DTOBesoin::fromArrayMultiple()
+      → Retourne array de DTOBesoin
+    
+    □ static getStatsGlobales(PDO $db): array
+      → Calcule à partir de getAllVilles() :
+        * COUNT villes
+        * SUM nombre_besoins
+        * SUM total_quantite_demandee
+        * SUM total_quantite_recue
+        * Calcul ratio global : (total_recue / total_demandee) * 100
+      → Retourne array associatif
+    ⏱ Temps estimé : 15 min
+    💡 Pattern: toutes les requêtes SQL encapsulées dans DTO
+
+2.4 Helpers DTOStats.php
+    □ static getRatioClass(float $ratio): string
+      → ratio >= 100 : 'progress-complete'
+      → ratio >= 50 : 'progress-partial'
+      → ratio < 50 : 'progress-low'
+    
+    □ static formatQuantite(float $quantite): string
+      → number_format($quantite, 0, '', ' ')
+    ⏱ Temps estimé : 3 min
+
+
+📋 PHASE 3 : CONTROLLER (Estimation: 10min)
+───────────────────────────────────────────────────────────────────
+
+3.1 Refactoring StatsController.php
+    □ Supprimer private $db et __construct()
+    □ Convertir toutes méthodes en STATIC
+    □ Supprimer TOUTES les requêtes SQL directes
+    □ État actuel : 2 méthodes (listVilles, showVilleDetail)
+    📍 Fichier: app/controllers/StatsController.php
+    ⏱ Temps estimé : 3 min
+
+3.2 Méthode listVilles() refactorisée
+    □ public static function listVilles(): void
+    □ $db = Flight::db()
+    □ $villes = DTOStats::getAllVilles($db)
+    □ $statsGlobales = DTOStats::getStatsGlobales($db)
+    □ Flight::render('stats/villes', [
+        'villes' => $villes,
+        'stats' => $statsGlobales
+      ])
+    📍 Ancien code: 5 lignes SQL → nouveau: 2 appels DAO
+    ⏱ Temps estimé : 4 min
+
+3.3 Méthode showVilleDetail() refactorisée
+    □ public static function showVilleDetail(int $id): void
+    □ $db = Flight::db()
+    □ $ville = DTOStats::getVilleById($db, $id)
+    □ if (!$ville) : Flight::redirect('/stats?error=ville_not_found')
+    □ $besoins = DTOStats::getBesoinsVille($db, $id)
+    □ Flight::render('stats/ville_detail', [
+        'ville' => $ville,
+        'besoins' => $besoins
+      ])
+    📍 Ancien code: 2 requêtes SQL → nouveau: 2 appels DAO
+    ⏱ Temps estimé : 3 min
+
+
+📋 PHASE 4 : VIEWS (Estimation: 15min)
+───────────────────────────────────────────────────────────────────
+
+4.1 Mise à jour stats/villes.php
+    □ Supprimer logique PHP inline pour calculs stats globales :
+      $totalBesoins = array_sum(...);
+      $totalDemande = array_sum(...);
+      $totalRecue = array_sum(...);
+      $ratioGlobal = ...;
+    □ Utiliser $stats passé par controller :
+      $stats['nombre_total_villes']
+      $stats['nombre_total_besoins']
+      $stats['ratio_satisfaction_global']
+    □ Simplifier affichage stat-cards (utiliser données pré-calculées)
+    □ Supprimer calcul inline $ratio, $class, $width dans la boucle
+    □ Utiliser DTOStats::getRatioClass() si besoin (ou pré-calculer dans controller)
+    📍 Fichier: app/views/stats/villes.php (lignes 14-19, 71-75)
+    💡 Principe: View affiche, Controller/DTO calcule
+    ⏱ Temps estimé : 8 min
+
+4.2 Vérifier stats/ville_detail.php
+    □ View déjà corrigée pour utiliser getters de DTOBesoin
+    □ Vérifier que calcul $ratio, $class, $width peut être déplacé dans controller
+    □ Optionnel : pré-calculer ces valeurs dans showVilleDetail()
+    📍 Fichier: app/views/stats/ville_detail.php (lignes 70-75)
+    ⏱ Temps estimé : 3 min
+
+4.3 Gestion des erreurs dans views
+    □ Afficher message si $_GET['error'] existe dans stats/villes.php (déjà fait)
+    □ Afficher empty-state si count($villes) == 0 (déjà fait)
+    □ Afficher empty-state si count($besoins) == 0 dans ville_detail.php (déjà fait)
+    ⏱ Temps estimé : 2 min
+
+4.4 Améliorer présentation (optionnel)
+    □ Icônes pour les stat-cards (🏙️ 📋 📊)
+    □ Hover effect sur les lignes du tableau (déjà cliquable)
+    □ Animation sur barres de progression
+    ⏱ Temps estimé : 2 min
+
+
+📋 PHASE 5 : ROUTES (Estimation: 2min)
+───────────────────────────────────────────────────────────────────
+
+5.1 Mise à jour routes.php
+    □ Remplacer : Flight::route('GET /stats', [new StatsController(), 'listVilles'])
+    □ Par : Flight::route('GET /stats', [StatsController::class, 'listVilles'])
+    □ Remplacer : Flight::route('GET /stats/ville/@id', [new StatsController(), 'showVilleDetail'])
+    □ Par : Flight::route('GET /stats/ville/@id', [StatsController::class, 'showVilleDetail'])
+    📍 Fichier: app/routes.php (lignes 51-52)
+    ⏱ Temps estimé : 2 min
+
+
+📋 PHASE 6 : TESTS & VALIDATION (Estimation: 8min)
+───────────────────────────────────────────────────────────────────
+
+6.1 Test page liste des villes
+    □ Accéder à http://localhost:1234/stats
+    □ Vérifier affichage des 3 stat-cards (villes, besoins, satisfaction)
+    □ Vérifier tableau avec toutes les villes
+    □ Vérifier barres de progression colorées
+    □ Vérifier lien "Détail" fonctionne
+    ⏱ Temps estimé : 3 min
+
+6.2 Test page détail ville
+    □ Accéder à http://localhost:1234/stats/ville/1
+    □ Vérifier header ville avec nom, région, stats
+    □ Vérifier tableau des besoins avec colonnes complètes
+    □ Vérifier que besoins satisfaits/non-satisfaits s'affichent correctement
+    □ Vérifier barres de progression par besoin
+    ⏱ Temps estimé : 3 min
+
+6.3 Test gestion erreurs
+    □ Accéder à ville inexistante : http://localhost:1234/stats/ville/999
+    □ Vérifier redirection vers /stats?error=ville_not_found
+    □ Vérifier message d'erreur s'affiche correctement
+    ⏱ Temps estimé : 2 min
+
+
+═══════════════════════════════════════════════════════════════════
+📊 RÉSUMÉ GLOBAL
+═══════════════════════════════════════════════════════════════════
+
+Temps total estimé : 65 minutes (1h05)
+
+Phase 1 (DB)         : 5 min  ✓ Vues existantes, vérification
+Phase 2 (DTO)        : 25 min → DTOStats avec 4 méthodes DAO
+Phase 3 (Controller) : 10 min → StatsController static, 0 SQL
+Phase 4 (Views)      : 15 min → Suppression logique inline
+Phase 5 (Routes)     : 2 min  → Pattern static
+Phase 6 (Tests)      : 8 min  → Validation fonctionnelle
+
+═══════════════════════════════════════════════════════════════════
+🎯 OBJECTIFS ARCHITECTURAUX
+═══════════════════════════════════════════════════════════════════
+
+✓ Pattern DAO : toutes requêtes SQL dans DTOStats
+✓ Controller léger : 0 SQL, juste orchestration
+✓ Controller static : pas d'instance, Flight::db() par méthode
+✓ Views simplifiées : affichage uniquement, 0 logique métier
+✓ Routes static : [ClassName::class, 'method']
+✓ Réutilisation : Besoin::findBesoinsSatisfactionByVille() + DTOBesoin
+✓ Consistency : même architecture que Besoins, Dons, Achats, Simulation, Récap
+
+═══════════════════════════════════════════════════════════════════
+📝 NOTES TECHNIQUES
+═══════════════════════════════════════════════════════════════════
+
+1. DTOStats vs autres DTOs :
+   - DTOBesoin, DTODon : représentent une entité
+   - DTORecap : représente un agrégat de statistiques récap
+   - DTOStats : représente un agrégat de statistiques villes
+   → Même pattern DAO que DTORecap
+
+2. Calculs dans View actuellement :
+   - stats/villes.php ligne 14-19 : array_sum sur $villes
+   - stats/villes.php ligne 71-75 : ratio, class, width pour progress bar
+   → À DÉPLACER dans DTOStats::getStatsGlobales() et controller
+
+3. Dépendances :
+   - DTOStats utilise Besoin::findBesoinsSatisfactionByVille()
+   - DTOStats utilise DTOBesoin::fromArrayMultiple()
+   → Réutilisation du code existant (DRY principle)
+
+4. Vues SQL nécessaires :
+   - v_bngrc_stats_villes : EXISTE déjà ✓
+   - v_bngrc_besoins_satisfaction : EXISTE déjà ✓
+   → Aucune nouvelle vue à créer
+
+5. Routes :
+   - GET /stats → listVilles
+   - GET /stats/ville/@id → showVilleDetail
+   → 2 routes simples, pattern cohérent
+
+═══════════════════════════════════════════════════════════════════
+🔄 COMPARAISON AVANT/APRÈS
+═══════════════════════════════════════════════════════════════════
+
+AVANT (StatsController actuel) :
+├── Instance controller avec $db
+├── 2 requêtes SQL directes dans controller
+├── Calculs stats globales dans view (array_sum)
+├── Calculs progress bar dans view (foreach inline)
+└── Routes avec [new StatsController(), 'method']
+
+APRÈS (StatsController refactorisé) :
+├── Static controller, Flight::db() local
+├── 0 SQL dans controller
+├── DTOStats avec 4 méthodes DAO
+├── Calculs stats dans DTO/Controller
+├── Views simplifiées (affichage pur)
+└── Routes avec [StatsController::class, 'method']
+
+Réduction lignes SQL dans controller : 100% (2 requêtes → 0)
+Cohérence architecture : 100% (pattern uniforme sur tous modules)
+
+═══════════════════════════════════════════════════════════════════

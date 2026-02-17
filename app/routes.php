@@ -48,8 +48,8 @@ Flight::route('GET /recap', [RecapController::class, 'showRecap']);
 Flight::route('GET /recap/ajax', [RecapController::class, 'getRecapAjax']);
 
 // ==================== STATISTIQUES ====================
-Flight::route('GET /stats', [new StatsController(), 'listVilles']);
-Flight::route('GET /stats/ville/@id', [new StatsController(), 'showVilleDetail']);
+Flight::route('GET /stats', [StatsController::class, 'listVilles']);
+Flight::route('GET /stats/ville/@id', [StatsController::class, 'showVilleDetail']);
 
 // ==================== CONFIGURATION ====================
 Flight::route('GET /configurations', [new ConfigurationController(), 'list']);
