@@ -1,5 +1,5 @@
 <?php include __DIR__ . '/../includes/header.php'; ?>
-<link rel="stylesheet" href="<?php echo Flight::get('flight.base_url'); ?>/assets/css/forms.css">
+<link rel="stylesheet" href="<?php echo $baseurl; ?>/assets/css/forms.css">
 
 <div class="page-container">
     <h1>✏️ Modifier le Besoin #<?php echo $besoin->getId(); ?></h1>
@@ -45,7 +45,7 @@
         ℹ️ <strong>Note :</strong> Vous pouvez modifier la ville et/ou la quantité. La modification sera enregistrée dans l'historique.
     </div>
 
-    <form action="/besoins/<?php echo $besoin->getId(); ?>/update" method="POST">
+    <form action="<?php echo $baseurl; ?>/besoins/<?php echo $besoin->getId(); ?>/update" method="POST">
         <div class="form-group">
             <label for="ville_id">Ville concernée *</label>
             <select name="ville_id" id="ville_id" required>
@@ -70,8 +70,8 @@
 
         <div class="buttons">
             <button type="submit" class="btn">✔️ Enregistrer la modification</button>
-            <a href="/besoins" class="btn btn-secondary">❌ Annuler</a>
-            <a href="/besoins/<?php echo $besoin->getId(); ?>/historique" class="btn btn-secondary">📜 Voir l'historique</a>
+            <a href="<?php echo $baseurl; ?>/besoins" class="btn btn-secondary">❌ Annuler</a>
+            <a href="<?php echo $baseurl; ?>/besoins/<?php echo $besoin->getId(); ?>/historique" class="btn btn-secondary">📜 Voir l'historique</a>
         </div>
     </form>
 </div>

@@ -28,7 +28,7 @@ class Configuration
 
     public static function findByNom(PDO $db, string $nom): ?Configuration
     {
-        $sql = "SELECT * FROM configuration WHERE nom = :nom LIMIT 1";
+        $sql = "SELECT * FROM bngrc_configuration WHERE nom = :nom LIMIT 1";
         $stmt = $db->prepare($sql);
         $stmt->execute([':nom' => $nom]);
         $data = $stmt->fetch(PDO::FETCH_ASSOC);

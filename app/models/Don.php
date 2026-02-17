@@ -3,6 +3,7 @@
 namespace models;
 
 use PDO;
+use dto\DTODon;
 
 class Don
 {
@@ -79,8 +80,8 @@ class Don
 
     public function create(PDO $db): bool
     {
-        $sql = "INSERT INTO dons (type_article_id, quantite, date_don, donateur, statut) 
-                VALUES (:type_article_id, :quantite, :date_don, :donateur, :statut)";
+        $sql = "INSERT INTO bngrc_dons (type_article_id, quantite, date_don, donateur, statut) 
+            VALUES (:type_article_id, :quantite, :date_don, :donateur, :statut)";
         $stmt = $db->prepare($sql);
         $result = $stmt->execute([
             ':type_article_id' => $this->type_article_id,
@@ -97,7 +98,7 @@ class Don
 
     public static function findById(PDO $db, int $id): ?Don
     {
-        $sql = "SELECT * FROM dons WHERE id = :id";
+        $sql = "SELECT * FROM bngrc_dons WHERE id = :id";
         $stmt = $db->prepare($sql);
         $stmt->execute([':id' => $id]);
         $data = $stmt->fetch();
@@ -115,7 +116,7 @@ class Don
 
     public static function findAll(PDO $db): array
     {
-        $sql = "SELECT * FROM dons ORDER BY date_don DESC";
+        $sql = "SELECT * FROM bngrc_dons ORDER BY date_don DESC";
         $stmt = $db->query($sql);
         $results = [];
         while ($data = $stmt->fetch()) {
@@ -131,56 +132,32 @@ class Don
         return $results;
     }
 
-    /**
-     * Récupérer tous les dons avec détails complets via la vue SQL
-     */
     public static function findAllComplete(PDO $db): array
     {
-        $sql = "SELECT * FROM vue_dons_complets ORDER BY date_don DESC";
+        $sql = "SELECT * FROM v_bngrc_dons_complets ORDER BY date_don DESC";
         $stmt = $db->query($sql);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Convertir en DTODon
+        return DTODon::fromArrayMultiple($data);
     }
 
-    /**
-     * Récupérer les dons disponibles (non entièrement distribués) d'un type d'article
-     */
-    public static function findDisponiblesByType(PDO $db, int $type_article_id): array
-    {
-        $sql = "SELECT * FROM vue_dons_complets 
-                WHERE type_article_id = :type_article_id AND quantite_disponible > 0
-                ORDER BY date_don ASC";
-        $stmt = $db->prepare($sql);
-        $stmt->execute([':type_article_id' => $type_article_id]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
+ 
     /**
      * Récupérer tous les dons disponibles
      */
     public static function findAllDisponibles(PDO $db): array
     {
-        $sql = "SELECT * FROM vue_dons_complets WHERE quantite_disponible > 0 ORDER BY date_don ASC";
+        $sql = "SELECT * FROM v_bngrc_dons_complets WHERE quantite_disponible > 0 ORDER BY date_don ASC";
         $stmt = $db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Récupérer le total disponible par type d'article
-     */
-    public static function getTotalDisponibleByType(PDO $db, int $type_article_id): int
-    {
-        $sql = "SELECT COALESCE(SUM(quantite_disponible), 0) AS total 
-                FROM vue_dons_complets 
-                WHERE type_article_id = :type_article_id";
-        $stmt = $db->prepare($sql);
-        $stmt->execute([':type_article_id' => $type_article_id]);
-        return (int) $stmt->fetchColumn();
-    }
 
     public function update(PDO $db): bool
     {
-        $sql = "UPDATE dons SET type_article_id = :type_article_id, quantite = :quantite, 
-                date_don = :date_don, donateur = :donateur, statut = :statut WHERE id = :id";
+        $sql = "UPDATE bngrc_dons SET type_article_id = :type_article_id, quantite = :quantite, 
+            date_don = :date_don, donateur = :donateur, statut = :statut WHERE id = :id";
         $stmt = $db->prepare($sql);
         return $stmt->execute([
             ':type_article_id' => $this->type_article_id,
@@ -194,7 +171,7 @@ class Don
 
     public function delete(PDO $db): bool
     {
-        $sql = "DELETE FROM dons WHERE id = :id";
+        $sql = "DELETE FROM bngrc_dons WHERE id = :id";
         $stmt = $db->prepare($sql);
         return $stmt->execute([':id' => $this->id]);
     }

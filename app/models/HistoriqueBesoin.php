@@ -33,7 +33,7 @@ class HistoriqueBesoin
 
     public function create(PDO $db): bool
     {
-        $sql = "INSERT INTO historique_besoin (besoin_id, quantite) VALUES (:besoin_id, :quantite)";
+        $sql = "INSERT INTO bngrc_historique_besoin (besoin_id, quantite) VALUES (:besoin_id, :quantite)";
         $stmt = $db->prepare($sql);
         $result = $stmt->execute([
             ':besoin_id' => $this->besoin_id,
@@ -47,7 +47,7 @@ class HistoriqueBesoin
 
     public static function findByBesoinId(PDO $db, int $besoin_id): array
     {
-        $sql = "SELECT * FROM vue_historique_besoins WHERE besoin_id = :besoin_id ORDER BY date_enregistrement DESC";
+        $sql = "SELECT * FROM v_bngrc_historique_besoins WHERE besoin_id = :besoin_id ORDER BY date_enregistrement DESC";
         $stmt = $db->prepare($sql);
         $stmt->execute([':besoin_id' => $besoin_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -55,14 +55,14 @@ class HistoriqueBesoin
 
     public static function findAllComplete(PDO $db): array
     {
-        $sql = "SELECT * FROM vue_historique_besoins ORDER BY date_enregistrement DESC";
+        $sql = "SELECT * FROM v_bngrc_historique_besoins ORDER BY date_enregistrement DESC";
         $stmt = $db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public static function findAll(PDO $db): array
     {
-        $sql = "SELECT * FROM historique_besoin ORDER BY date_enregistrement DESC";
+        $sql = "SELECT * FROM bngrc_historique_besoin ORDER BY date_enregistrement DESC";
         $stmt = $db->query($sql);
         $results = [];
         while ($data = $stmt->fetch()) {

@@ -1,10 +1,10 @@
 <?php include __DIR__ . '/../includes/header.php'; ?>
-<link rel="stylesheet" href="<?php echo Flight::get('flight.base_url'); ?>/assets/css/besoins.css">
+<link rel="stylesheet" href="<?php echo $baseurl; ?>/assets/css/besoins.css">
 
 <div class="page-container">
     <div style="margin-bottom: 30px;">
         <h1>📜 Historique du Besoin #<?php echo $besoin->getId(); ?></h1>
-        <a href="/besoins" class="btn">← Retour à la liste</a>
+        <a href="<?php echo $baseurl; ?>/besoins" class="btn">← Retour à la liste</a>
     </div>
 
     <div class="besoin-info">

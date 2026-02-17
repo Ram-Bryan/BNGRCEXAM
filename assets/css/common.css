@@ -1,0 +1,325 @@
+/* Common styles used across multiple pages */
+.page-container {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+/* Buttons */
+.btn {
+    display: inline-block;
+    padding: 12px 25px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn:hover {
+    background-color: #0056b3;
+}
+
+.btn-success {
+    background-color: #28a745;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    color: #333;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+}
+
+.btn-secondary:hover {
+    background-color: #545b62;
+}
+
+.btn-info {
+    background-color: #17a2b8;
+}
+
+.btn-lg {
+    padding: 15px 30px;
+    font-size: 16px;
+}
+
+.btn-small {
+    padding: 5px 10px;
+    font-size: 12px;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th {
+    color: white;
+    padding: 12px;
+    text-align: left;
+}
+
+td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+tr:hover {
+    background-color: #f5f5f5;
+}
+
+/* Badges */
+.badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.badge-nature {
+    background-color: #28a745;
+    color: white;
+}
+
+.badge-argent {
+    background-color: #ffc107;
+    color: #333;
+}
+
+.badge-material {
+    background-color: #6c757d;
+    color: white;
+}
+
+.badge-simulation {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.badge-validee {
+    background-color: #28a745;
+    color: white;
+}
+
+.badge-disponible {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.badge-distribue {
+    background-color: #6c757d;
+    color: white;
+}
+
+.badge-success {
+    background-color: #28a745;
+    color: white;
+}
+
+.badge-warning {
+    background-color: #ffc107;
+    color: #333;
+}
+
+/* Messages */
+.success {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.info-box {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.warning-box {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.success-box {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+}
+
+/* Info cards */
+.info-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.info-card {
+    padding: 20px;
+    border-radius: 10px;
+    color: white;
+    text-align: center;
+}
+
+.info-card.purple {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.info-card.blue {
+    background: linear-gradient(135deg, #0093E9, #80D0C7);
+}
+
+.info-card.green {
+    background: linear-gradient(135deg, #11998e, #38ef7d);
+}
+
+.info-card.orange {
+    background: linear-gradient(135deg, #f2994a, #f2c94c);
+}
+
+.info-card.red {
+    background: linear-gradient(135deg, #eb3349, #f45c43);
+}
+
+.info-card.teal {
+    background: linear-gradient(135deg, #00b4db, #0083b0);
+}
+
+.info-card .value {
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.info-card .label {
+    font-size: 13px;
+    opacity: 0.9;
+    margin-top: 5px;
+}
+
+.info-card .icon {
+    font-size: 40px;
+    float: right;
+    opacity: 0.7;
+}
+
+/* Progress bars */
+.progress-bar-container {
+    width: 100%;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    height: 24px;
+}
+
+.progress-bar {
+    height: 100%;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.progress-low {
+    background-color: #dc3545;
+}
+
+.progress-partial {
+    background-color: #ffc107;
+    color: #333;
+}
+
+.progress-complete {
+    background-color: #28a745;
+}
+
+.section-title {
+    margin-top: 40px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #eee;
+}
+
+.loading {
+    text-align: center;
+    padding: 30px;
+    color: #666;
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.loading-spinner {
+    font-size: 24px;
+    color: #007bff;
+}

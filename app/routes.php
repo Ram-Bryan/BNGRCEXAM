@@ -22,10 +22,10 @@ Flight::route('POST /besoins/@id/delete', [BesoinController::class, 'delete']);
 Flight::route('GET /besoins/@id/historique', [BesoinController::class, 'showHistorique']);
 
 // ==================== DONS ====================
-Flight::route('GET /dons', [new DonController(), 'listDons']);
-Flight::route('GET /dons/ajout', [new DonController(), 'showForm']);
-Flight::route('POST /dons/create', [new DonController(), 'create']);
-Flight::route('POST /dons/@id/delete', [new DonController(), 'delete']);
+Flight::route('GET /dons', [DonController::class, 'listDons']);
+Flight::route('GET /dons/ajout', [DonController::class, 'showForm']);
+Flight::route('POST /dons/create', [DonController::class, 'create']);
+Flight::route('POST /dons/@id/delete', [DonController::class, 'delete']);
 
 // ==================== ACHATS ====================
 Flight::route('GET /achats', [new AchatController(), 'listAchats']);

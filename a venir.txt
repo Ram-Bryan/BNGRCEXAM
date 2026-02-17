@@ -1,1 +1,3 @@
-table categorie
+- table categorie
+- pk pas de satisfaction 100% pour les autres villes 
+- css pro

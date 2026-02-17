@@ -1,5 +1,5 @@
 <?php include __DIR__ . '/../includes/header.php'; ?>
-<link rel="stylesheet" href="<?php echo Flight::get('flight.base_url'); ?>/assets/css/stats.css">
+<link rel="stylesheet" href="<?php echo $baseurl; ?>/assets/css/stats.css">
 
 <div class="page-container">
     <h1 style="margin-bottom: 10px;">📊 Statistiques par Ville</h1>
@@ -53,7 +53,7 @@
             </thead>
             <tbody>
                 <?php foreach ($villes as $ville): ?>
-                    <tr onclick="window.location='/stats/ville/<?php echo $ville['ville_id']; ?>'">
+                    <tr onclick="window.location='<?php echo $baseurl; ?>/stats/ville/<?php echo $ville['ville_id']; ?>'">
                         <td><strong><?php echo htmlspecialchars($ville['ville_nom']); ?></strong></td>
                         <td><?php echo htmlspecialchars($ville['region_nom']); ?></td>
                         <td><?php echo number_format($ville['nbsinistres']); ?></td>
@@ -72,7 +72,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td><a href="/stats/ville/<?php echo $ville['ville_id']; ?>" class="btn">📋 Détail</a></td>
+                        <td><a href="<?php echo $baseurl; ?>/stats/ville/<?php echo $ville['ville_id']; ?>" class="btn">📋 Détail</a></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>

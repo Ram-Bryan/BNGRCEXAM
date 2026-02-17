@@ -21,7 +21,7 @@ class StatsController
      */
     public function listVilles()
     {
-        $sql = "SELECT * FROM vue_stats_villes ORDER BY region_nom, ville_nom";
+        $sql = "SELECT * FROM v_bngrc_stats_villes ORDER BY region_nom, ville_nom";
         $stmt = $this->db->query($sql);
         $villes = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
@@ -36,7 +36,7 @@ class StatsController
     public function showVilleDetail($id)
     {
         // Info de la ville
-        $sqlVille = "SELECT * FROM vue_stats_villes WHERE ville_id = :id";
+        $sqlVille = "SELECT * FROM v_bngrc_stats_villes WHERE ville_id = :id";
         $stmt = $this->db->prepare($sqlVille);
         $stmt->execute([':id' => $id]);
         $ville = $stmt->fetch(PDO::FETCH_ASSOC);

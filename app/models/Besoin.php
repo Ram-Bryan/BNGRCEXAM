@@ -36,7 +36,7 @@ class Besoin
 
     public function create(PDO $db): bool
     {
-        $sql = "INSERT INTO besoin (ville_id, type_article_id, quantite, date_demande) 
+        $sql = "INSERT INTO bngrc_besoin (ville_id, type_article_id, quantite, date_demande) 
                 VALUES (:ville_id, :type_article_id, :quantite, :date_demande)";
         $stmt = $db->prepare($sql);
         $result = $stmt->execute([
@@ -53,7 +53,7 @@ class Besoin
 
     public static function findById(PDO $db, int $id): ?Besoin
     {
-        $sql = "SELECT * FROM besoin WHERE id = :id";
+        $sql = "SELECT * FROM bngrc_besoin WHERE id = :id";
         $stmt = $db->prepare($sql);
         $stmt->execute([':id' => $id]);
         $data = $stmt->fetch();
@@ -70,7 +70,7 @@ class Besoin
 
     public static function findAll(PDO $db): array
     {
-        $sql = "SELECT * FROM besoin ORDER BY date_demande DESC";
+        $sql = "SELECT * FROM bngrc_besoin ORDER BY date_demande DESC";
         $stmt = $db->query($sql);
         $results = [];
         while ($data = $stmt->fetch()) {
@@ -87,14 +87,14 @@ class Besoin
 
     public static function findAllComplete(PDO $db): array
     {
-        $sql = "SELECT * FROM vue_besoins_complets ORDER BY date_demande DESC";
+        $sql = "SELECT * FROM v_bngrc_besoins_satisfaction ORDER BY date_demande DESC";
         $stmt = $db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public static function findCompleteById(PDO $db, int $id): ?array
     {
-        $sql = "SELECT * FROM vue_besoins_complets WHERE id = :id";
+        $sql = "SELECT * FROM v_bngrc_besoins_complets WHERE id = :id";
         $stmt = $db->prepare($sql);
         $stmt->execute([':id' => $id]);
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -103,18 +103,18 @@ class Besoin
 
     public static function findBesoinsNonSatisfaits(PDO $db): array
     {
-        $sql = "SELECT * FROM vue_besoins_satisfaction 
-                WHERE quantite_restante > 0 
-                ORDER BY date_demande ASC";
+        $sql = "SELECT * FROM v_bngrc_besoins_satisfaction 
+            WHERE quantite_restante > 0 
+            ORDER BY date_demande ASC";
         $stmt = $db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public static function findBesoinsSatisfactionByVille(PDO $db, int $ville_id): array
     {
-        $sql = "SELECT * FROM vue_besoins_satisfaction 
-                WHERE ville_id = :ville_id 
-                ORDER BY date_demande ASC";
+        $sql = "SELECT * FROM v_bngrc_besoins_satisfaction 
+            WHERE ville_id = :ville_id 
+            ORDER BY date_demande ASC";
         $stmt = $db->prepare($sql);
         $stmt->execute([':ville_id' => $ville_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -149,14 +149,14 @@ class Besoin
             return false;
         }
         
-        $sql = "UPDATE besoin SET " . implode(", ", $updates) . " WHERE id = :id";
+        $sql = "UPDATE bngrc_besoin SET " . implode(", ", $updates) . " WHERE id = :id";
         $stmt = $db->prepare($sql);
         return $stmt->execute($params);
     }
 
     public function updateQuantite(PDO $db): bool
     {
-        $sql = "UPDATE besoin SET quantite = :quantite WHERE id = :id";
+        $sql = "UPDATE bngrc_besoin SET quantite = :quantite WHERE id = :id";
         $stmt = $db->prepare($sql);
         return $stmt->execute([
             ':quantite' => $this->quantite,
@@ -166,14 +166,14 @@ class Besoin
 
     public function delete(PDO $db): bool
     {
-        $sql = "DELETE FROM besoin WHERE id = :id";
+        $sql = "DELETE FROM bngrc_besoin WHERE id = :id";
         $stmt = $db->prepare($sql);
         return $stmt->execute([':id' => $this->id]);
     }
 
     public static function findBesoinsRestantsAchats(PDO $db, ?int $ville_id = null): array
     {
-        $sql = "SELECT * FROM vue_besoins_satisfaction 
+        $sql = "SELECT * FROM v_bngrc_besoins_satisfaction 
                 WHERE quantite_restante > 0 AND categorie IN ('nature', 'material')";
         if ($ville_id) {
             $sql .= " AND ville_id = :ville_id";
@@ -191,9 +191,9 @@ class Besoin
 
     public static function findBesoinsAvecSimulation(PDO $db): array
     {
-        $sql = "SELECT * FROM vue_besoins_satisfaction_avec_simulation 
-                WHERE quantite_restante_avec_simulation > 0 
-                ORDER BY date_demande ASC";
+        $sql = "SELECT * FROM v_bngrc_besoins_satisfaction_avec_simulation 
+            WHERE quantite_restante_avec_simulation > 0 
+            ORDER BY date_demande ASC";
         $stmt = $db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

@@ -119,8 +119,8 @@ class Achat
 
     public function create(PDO $db): bool
     {
-        $sql = "INSERT INTO achat (besoin_id, quantite, montant_ht, frais_percent, montant_frais, montant_total, date_achat, valide) 
-                VALUES (:besoin_id, :quantite, :montant_ht, :frais_percent, :montant_frais, :montant_total, :date_achat, :valide)";
+        $sql = "INSERT INTO bngrc_achat (besoin_id, quantite, montant_ht, frais_percent, montant_frais, montant_total, date_achat, valide) 
+            VALUES (:besoin_id, :quantite, :montant_ht, :frais_percent, :montant_frais, :montant_total, :date_achat, :valide)";
         $stmt = $db->prepare($sql);
         $result = $stmt->execute([
             ':besoin_id' => $this->besoin_id,
@@ -140,7 +140,7 @@ class Achat
 
     public static function findById(PDO $db, int $id): ?Achat
     {
-        $sql = "SELECT * FROM achat WHERE id = :id";
+        $sql = "SELECT * FROM bngrc_achat WHERE id = :id";
         $stmt = $db->prepare($sql);
         $stmt->execute([':id' => $id]);
         $data = $stmt->fetch();
@@ -167,14 +167,14 @@ class Achat
 
     public static function findAll(PDO $db): array
     {
-        $sql = "SELECT * FROM vue_achats_complets ORDER BY date_achat DESC";
+        $sql = "SELECT * FROM v_bngrc_achats_complets ORDER BY date_achat DESC";
         $stmt = $db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public static function findAllByVille(PDO $db, int $ville_id): array
     {
-        $sql = "SELECT * FROM vue_achats_complets WHERE ville_id = :ville_id ORDER BY date_achat DESC";
+        $sql = "SELECT * FROM v_bngrc_achats_complets WHERE ville_id = :ville_id ORDER BY date_achat DESC";
         $stmt = $db->prepare($sql);
         $stmt->execute([':ville_id' => $ville_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -182,7 +182,7 @@ class Achat
 
     public static function findNonValides(PDO $db): array
     {
-        $sql = "SELECT * FROM vue_achats_complets WHERE valide = FALSE ORDER BY date_achat DESC";
+        $sql = "SELECT * FROM v_bngrc_achats_complets WHERE valide = FALSE ORDER BY date_achat DESC";
         $stmt = $db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -192,7 +192,7 @@ class Achat
      */
     public static function getArgentDisponible(PDO $db): float
     {
-        $sql = "SELECT argent_disponible FROM vue_argent_disponible";
+        $sql = "SELECT argent_disponible FROM v_bngrc_argent_disponible";
         $stmt = $db->query($sql);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return (float) ($result['argent_disponible'] ?? 0);
@@ -203,7 +203,7 @@ class Achat
      */
     public function valider(PDO $db): bool
     {
-        $sql = "UPDATE achat SET valide = TRUE, date_validation = NOW() WHERE id = :id";
+        $sql = "UPDATE bngrc_achat SET valide = TRUE, date_validation = NOW() WHERE id = :id";
         $stmt = $db->prepare($sql);
         return $stmt->execute([':id' => $this->id]);
     }
@@ -213,7 +213,7 @@ class Achat
      */
     public static function validerTous(PDO $db): bool
     {
-        $sql = "UPDATE achat SET valide = TRUE, date_validation = NOW() WHERE valide = FALSE";
+        $sql = "UPDATE bngrc_achat SET valide = TRUE, date_validation = NOW() WHERE valide = FALSE";
         $stmt = $db->prepare($sql);
         return $stmt->execute();
     }
@@ -223,14 +223,14 @@ class Achat
      */
     public static function annulerSimulation(PDO $db): bool
     {
-        $sql = "DELETE FROM achat WHERE valide = FALSE";
+        $sql = "DELETE FROM bngrc_achat WHERE valide = FALSE";
         $stmt = $db->prepare($sql);
         return $stmt->execute();
     }
 
     public function delete(PDO $db): bool
     {
-        $sql = "DELETE FROM achat WHERE id = :id";
+        $sql = "DELETE FROM bngrc_achat WHERE id = :id";
         $stmt = $db->prepare($sql);
         return $stmt->execute([':id' => $this->id]);
     }
@@ -240,7 +240,7 @@ class Achat
      */
     public static function existeAchatNonValide(PDO $db, int $besoin_id): bool
     {
-        $sql = "SELECT COUNT(*) FROM achat WHERE besoin_id = :besoin_id AND valide = FALSE";
+        $sql = "SELECT COUNT(*) FROM bngrc_achat WHERE besoin_id = :besoin_id AND valide = FALSE";
         $stmt = $db->prepare($sql);
         $stmt->execute([':besoin_id' => $besoin_id]);
         return (int)$stmt->fetchColumn() > 0;

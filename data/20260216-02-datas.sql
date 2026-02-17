@@ -7,16 +7,16 @@ USE bngrc;
 -- Désactiver temporairement les checks FK pour faciliter le rechargement
 SET FOREIGN_KEY_CHECKS = 0;
 
-TRUNCATE TABLE type_articles;
-TRUNCATE TABLE ville;
-TRUNCATE TABLE region;
+TRUNCATE TABLE bngrc_type_articles;
+TRUNCATE TABLE bngrc_ville;
+TRUNCATE TABLE bngrc_region;
 
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- --------------------------------------------------
 -- Regions
 -- --------------------------------------------------
-INSERT INTO region (nom) VALUES
+INSERT INTO bngrc_region (nom) VALUES
 ('Analamanga'),
 ('Atsimo-Andrefana'),
 ('Sava'),
@@ -26,7 +26,7 @@ INSERT INTO region (nom) VALUES
 -- --------------------------------------------------
 -- Villes (rattachement aux régions ci-dessus)
 -- --------------------------------------------------
-INSERT INTO ville (nom, idregion, nbsinistres) VALUES
+INSERT INTO bngrc_ville (nom, idregion, nbsinistres) VALUES
 ('Antananarivo', 1, 1200),
 ('Ambohidratrimo', 1, 250),
 ('Toliara', 2, 480),
@@ -40,7 +40,7 @@ INSERT INTO ville (nom, idregion, nbsinistres) VALUES
 -- Types d'articles
 -- categorie = 'nature' | 'argent' | 'material'
 -- --------------------------------------------------
-INSERT INTO type_articles (nom, categorie, prix_unitaire, unite) VALUES
+INSERT INTO bngrc_type_articles (nom, categorie, prix_unitaire, unite) VALUES
 ('Eau potable (litre)', 'nature', 0.50, 'litre'),
 ('Riz (sac 50kg)', 'nature', 35000.00, 'sac'),
 ('Tentes', 'material', 120000.00, 'unité'),
@@ -49,7 +49,7 @@ INSERT INTO type_articles (nom, categorie, prix_unitaire, unite) VALUES
 ('Aide financière (espèces)', 'argent', 1.00, 'Ar'),
 ('Matériel médical', 'material', 25000.00, 'lot');
 
-INSERT INTO configuration (nom, valeur) VALUES ('FRAIS_ACHAT_PERCENT', '10')
+INSERT INTO bngrc_configuration (nom, valeur) VALUES ('FRAIS_ACHAT_PERCENT', '10')
 ON DUPLICATE KEY UPDATE valeur = VALUES(valeur);
 
 -- Fin du fichier

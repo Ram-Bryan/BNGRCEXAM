@@ -1,5 +1,5 @@
 <?php include __DIR__ . '/../includes/header.php'; ?>
-<link rel="stylesheet" href="<?php echo Flight::get('flight.base_url'); ?>/assets/css/forms.css">
+<link rel="stylesheet" href="<?php echo $baseurl; ?>/assets/css/forms.css">
 
 <div class="page-container">
     <h1>📋 Formulaire de Demande de Besoin</h1>
@@ -15,7 +15,7 @@
         ℹ️ Cette demande sera enregistrée avec un historique pour suivre toutes les modifications futures.
     </div>
 
-    <form action="/besoins/create" method="POST">
+    <form action="<?php echo $baseurl; ?>/besoins/create" method="POST">
         <div class="form-group">
             <label for="ville_id">Ville concernée *</label>
             <select name="ville_id" id="ville_id" required>
@@ -55,7 +55,7 @@
 
         <div class="buttons">
             <button type="submit" class="btn">✔️ Enregistrer la demande</button>
-            <a href="/besoins" class="btn btn-secondary">❌ Annuler</a>
+            <a href="<?php echo $baseurl; ?>/besoins" class="btn btn-secondary">❌ Annuler</a>
         </div>
     </form>
 </div>

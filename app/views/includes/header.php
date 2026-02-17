@@ -5,13 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BNGRC - Gestion des Dons et Besoins</title>
-    <?php $baseurl = Flight::get('flight.base_url'); ?>
+    <?php $baseurl = rtrim(Flight::get('flight.base_url'), '/'); ?>
     <link rel="stylesheet" href="<?php echo $baseurl; ?>/assets/css/main.css">
     <link rel="stylesheet" href="<?php echo $baseurl; ?>/assets/css/common.css">
+    <script>
+        window.BASE_URL = '<?php echo $baseurl; ?>/';
+    </script>
 </head>
 
 <body>
-    <?php $baseurl = Flight::get('flight.base_url'); ?>
+    <?php $baseurl = rtrim(Flight::get('flight.base_url'), '/'); ?>
     <nav class="navbar">
         <div class="navbar-inner">
             <a href="<?php echo $baseurl; ?>/" class="navbar-brand">🏛️ <span>BNGRC</span> - Gestion des Dons</a>

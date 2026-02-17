@@ -9,46 +9,59 @@ use PDO;
 
 class DonController
 {
-    private PDO $db;
-
-    public function __construct()
-    {
-        $this->db = Flight::db();
-    }
-
     /**
      * Afficher la liste des dons
      */
-    public function listDons()
+    public static function listDons($message = null): void
     {
-        $donsData = Don::findAllComplete($this->db);
+        $db = Flight::db();
+        $dons = Don::findAllComplete($db);
+
+        // Calculer les statistiques côté backend
+        $totalDons = count($dons);
+        $totalDisponible = 0;
+        $totalDistribue = 0;
+        
+        foreach ($dons as $don) {
+            $totalDisponible += $don->getQuantiteDisponible() ?? 0;
+            $totalDistribue += $don->getQuantiteDistribuee() ?? 0;
+        }
 
         Flight::render('don/list', [
-            'dons' => $donsData
+            'dons' => $dons,
+            'message' => $message,
+            'totalDons' => $totalDons,
+            'totalDisponible' => $totalDisponible,
+            'totalDistribue' => $totalDistribue
         ]);
     }
 
     /**
      * Afficher le formulaire d'ajout de don
      */
-    public function showForm()
+    public static function showForm($message = null): void
     {
-        $typeArticles = TypeArticle::findAll($this->db);
+        $db = Flight::db();
+        $typeArticles = TypeArticle::findAll($db);
 
         Flight::render('don/form', [
-            'typeArticles' => $typeArticles
+            'typeArticles' => $typeArticles,
+            'message' => $message
         ]);
     }
 
     /**
      * Créer un nouveau don
      */
-    public function create()
+    public static function create(): void
     {
-        $type_article_id = Flight::request()->data->type_article_id;
-        $quantite = Flight::request()->data->quantite;
-        $date_don = Flight::request()->data->date_don;
-        $donateur = Flight::request()->data->donateur;
+        $db = Flight::db();
+        $request = Flight::request();
+        
+        $type_article_id = $request->data->type_article_id;
+        $quantite = $request->data->quantite;
+        $date_don = $request->data->date_don;
+        $donateur = $request->data->donateur;
 
         try {
             $don = new Don();
@@ -58,35 +71,37 @@ class DonController
                 ->setDonateur($donateur ?: 'Anonyme')
                 ->setStatut('disponible');
 
-            if ($don->create($this->db)) {
-                Flight::redirect('/dons?success=created');
+            if ($don->create($db)) {
+                self::listDons('Don enregistré avec succès !');
             } else {
-                Flight::redirect('/dons/ajout?error=creation_failed');
+                self::showForm('Erreur lors de la création du don');
             }
         } catch (\Exception $e) {
-            Flight::redirect('/dons/ajout?error=' . urlencode($e->getMessage()));
+            self::showForm('Erreur : ' . $e->getMessage());
         }
     }
 
     /**
      * Supprimer un don
      */
-    public function delete($id)
+    public static function delete($id): void
     {
+        $db = Flight::db();
+        
         try {
-            $don = Don::findById($this->db, $id);
+            $don = Don::findById($db, $id);
             if (!$don) {
-                Flight::redirect('/dons?error=not_found');
+                self::listDons('Don non trouvé');
                 return;
             }
 
-            if ($don->delete($this->db)) {
-                Flight::redirect('/dons?success=deleted');
+            if ($don->delete($db)) {
+                self::listDons('Don supprimé avec succès !');
             } else {
-                Flight::redirect('/dons?error=delete_failed');
+                self::listDons('Erreur lors de la suppression');
             }
         } catch (\Exception $e) {
-            Flight::redirect('/dons?error=' . urlencode($e->getMessage()));
+            self::listDons('Erreur : ' . $e->getMessage());
         }
     }
 }

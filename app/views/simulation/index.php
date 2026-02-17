@@ -1,5 +1,5 @@
 <?php include __DIR__ . '/../includes/header.php'; ?>
-<link rel="stylesheet" href="<?php echo Flight::get('flight.base_url'); ?>/assets/css/simulation.css">
+<link rel="stylesheet" href="<?php echo $baseurl; ?>/assets/css/simulation.css">
 
 <div class="page-container">
     <div class="header">
@@ -7,7 +7,7 @@
             <h1>⚙️ Simulation & Distribution</h1>
             <p style="color: #666;">Simuler puis distribuer les dons aux besoins</p>
         </div>
-        <a href="/" class="btn">🏠 Accueil</a>
+        <a href="<?php echo $baseurl; ?>/" class="btn">🏠 Accueil</a>
     </div>
 
     <!-- Zone de simulation -->
@@ -98,7 +98,7 @@
     <?php if (empty($dons)): ?>
         <div class="empty-state">
             <p>Aucun don disponible à distribuer.</p>
-            <a href="/dons/new" class="btn btn-success">➕ Ajouter un don</a>
+            <a href="<?php echo $baseurl; ?>/dons/new" class="btn btn-success">➕ Ajouter un don</a>
         </div>
     <?php else: ?>
         <table>
@@ -231,6 +231,6 @@
     <?php endif; ?>
 </div>
 
-<script src="<?php echo Flight::get('flight.base_url'); ?>/assets/js/simulation.js"></script>
+<script src="<?php echo $baseurl; ?>/assets/js/simulation.js"></script>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

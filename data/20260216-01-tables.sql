@@ -1,17 +1,17 @@
-CREATE TABLE region (
+CREATE TABLE bngrc_region (
     id INT PRIMARY KEY AUTO_INCREMENT,
     nom VARCHAR(100) NOT NULL
 );
 
-CREATE TABLE ville (
+CREATE TABLE bngrc_ville (
     id INT PRIMARY KEY AUTO_INCREMENT,
     nom VARCHAR(100) NOT NULL,
     idregion INT NOT NULL,
     nbsinistres INT DEFAULT 0,
-    FOREIGN KEY (idregion) REFERENCES region(id)
+    FOREIGN KEY (idregion) REFERENCES bngrc_region(id)
 );
 
-CREATE TABLE type_articles (
+CREATE TABLE bngrc_type_articles (
     id INT PRIMARY KEY AUTO_INCREMENT,
     nom VARCHAR(100) NOT NULL,
     categorie ENUM('nature', 'argent', 'material') NOT NULL,
@@ -19,46 +19,46 @@ CREATE TABLE type_articles (
     unite VARCHAR(50) NOT NULL
 );
 
-CREATE TABLE besoin (
+CREATE TABLE bngrc_besoin (
     id INT PRIMARY KEY AUTO_INCREMENT,
     ville_id INT NOT NULL,
     type_article_id INT NOT NULL,
     quantite INT NOT NULL,
     date_demande DATE NOT NULL,
-    FOREIGN KEY (ville_id) REFERENCES ville(id),
-    FOREIGN KEY (type_article_id) REFERENCES type_articles(id)
+    FOREIGN KEY (ville_id) REFERENCES bngrc_ville(id),
+    FOREIGN KEY (type_article_id) REFERENCES bngrc_type_articles(id)
 );
 
-CREATE TABLE dons (
+CREATE TABLE bngrc_dons (
     id INT PRIMARY KEY AUTO_INCREMENT,
     type_article_id INT NOT NULL,
     quantite INT NOT NULL,
     date_don DATE NOT NULL,
     donateur VARCHAR(200) DEFAULT 'Anonyme',
     statut ENUM('disponible', 'distribue') DEFAULT 'disponible',
-    FOREIGN KEY (type_article_id) REFERENCES type_articles(id)
+    FOREIGN KEY (type_article_id) REFERENCES bngrc_type_articles(id)
 );
 
-CREATE TABLE distribution (
+CREATE TABLE bngrc_distribution (
     id INT PRIMARY KEY AUTO_INCREMENT,
     don_id INT NOT NULL,
     besoin_id INT NOT NULL,
     quantite INT NOT NULL,
     date_distribution DATE NOT NULL,
     est_simulation BOOLEAN DEFAULT TRUE,
-    FOREIGN KEY (don_id) REFERENCES dons(id) ON DELETE CASCADE,
-    FOREIGN KEY (besoin_id) REFERENCES besoin(id) ON DELETE CASCADE
+    FOREIGN KEY (don_id) REFERENCES bngrc_dons(id) ON DELETE CASCADE,
+    FOREIGN KEY (besoin_id) REFERENCES bngrc_besoin(id) ON DELETE CASCADE
 );
 
-CREATE TABLE historique_besoin (
+CREATE TABLE bngrc_historique_besoin (
     id INT PRIMARY KEY AUTO_INCREMENT,
     besoin_id INT NOT NULL,
     quantite INT NOT NULL,
     date_enregistrement DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (besoin_id) REFERENCES besoin(id) ON DELETE CASCADE
+    FOREIGN KEY (besoin_id) REFERENCES bngrc_besoin(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS achat (
+CREATE TABLE IF NOT EXISTS bngrc_achat (
     id INT PRIMARY KEY AUTO_INCREMENT,
     besoin_id INT NOT NULL,
     quantite INT NOT NULL,
@@ -69,10 +69,10 @@ CREATE TABLE IF NOT EXISTS achat (
     date_achat DATE NOT NULL,
     valide BOOLEAN DEFAULT FALSE,
     date_validation DATETIME NULL,
-    FOREIGN KEY (besoin_id) REFERENCES besoin(id) ON DELETE CASCADE
+    FOREIGN KEY (besoin_id) REFERENCES bngrc_besoin(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS configuration (
+CREATE TABLE IF NOT EXISTS bngrc_configuration (
     id INT PRIMARY KEY AUTO_INCREMENT,
     nom VARCHAR(100) NOT NULL UNIQUE,
     valeur TEXT NULL,

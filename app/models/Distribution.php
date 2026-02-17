@@ -79,8 +79,8 @@ class Distribution
 
     public function create(PDO $db): bool
     {
-        $sql = "INSERT INTO distribution (don_id, besoin_id, quantite, date_distribution, est_simulation) 
-                VALUES (:don_id, :besoin_id, :quantite, :date_distribution, :est_simulation)";
+        $sql = "INSERT INTO bngrc_distribution (don_id, besoin_id, quantite, date_distribution, est_simulation) 
+            VALUES (:don_id, :besoin_id, :quantite, :date_distribution, :est_simulation)";
         $stmt = $db->prepare($sql);
         $result = $stmt->execute([
             ':don_id' => $this->don_id,
@@ -97,7 +97,7 @@ class Distribution
 
     public static function findById(PDO $db, int $id): ?Distribution
     {
-        $sql = "SELECT * FROM distribution WHERE id = :id";
+        $sql = "SELECT * FROM bngrc_distribution WHERE id = :id";
         $stmt = $db->prepare($sql);
         $stmt->execute([':id' => $id]);
         $data = $stmt->fetch();
@@ -123,7 +123,7 @@ class Distribution
      */
     public static function findAllComplete(PDO $db): array
     {
-        $sql = "SELECT * FROM vue_distributions ORDER BY date_distribution DESC";
+        $sql = "SELECT * FROM v_bngrc_distributions ORDER BY date_distribution DESC";
         $stmt = $db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -133,7 +133,7 @@ class Distribution
      */
     public static function findSimulations(PDO $db): array
     {
-        $sql = "SELECT * FROM vue_distributions WHERE est_simulation = TRUE ORDER BY date_distribution DESC";
+        $sql = "SELECT * FROM v_bngrc_distributions WHERE est_simulation = TRUE ORDER BY date_distribution DESC";
         $stmt = $db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -143,7 +143,7 @@ class Distribution
      */
     public static function findValidees(PDO $db): array
     {
-        $sql = "SELECT * FROM vue_distributions WHERE est_simulation = FALSE ORDER BY date_distribution DESC";
+        $sql = "SELECT * FROM v_bngrc_distributions WHERE est_simulation = FALSE ORDER BY date_distribution DESC";
         $stmt = $db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -153,7 +153,7 @@ class Distribution
      */
     public static function supprimerSimulations(PDO $db): bool
     {
-        $sql = "DELETE FROM distribution WHERE est_simulation = TRUE";
+        $sql = "DELETE FROM bngrc_distribution WHERE est_simulation = TRUE";
         $stmt = $db->prepare($sql);
         return $stmt->execute();
     }
@@ -163,7 +163,7 @@ class Distribution
      */
     public static function validerSimulations(PDO $db): bool
     {
-        $sql = "UPDATE distribution SET est_simulation = FALSE WHERE est_simulation = TRUE";
+        $sql = "UPDATE bngrc_distribution SET est_simulation = FALSE WHERE est_simulation = TRUE";
         $stmt = $db->prepare($sql);
         return $stmt->execute();
     }
@@ -182,15 +182,15 @@ class Distribution
 
         // Récupérer les besoins non satisfaits, triés par date (les plus anciens en premier)
         $sqlBesoins = "SELECT b.*, ta.categorie, ta.prix_unitaire
-                       FROM besoin b
-                       JOIN type_articles ta ON b.type_article_id = ta.id
-                       ORDER BY b.date_demande ASC, b.id ASC";
+                   FROM bngrc_besoin b
+                   JOIN bngrc_type_articles ta ON b.type_article_id = ta.id
+                   ORDER BY b.date_demande ASC, b.id ASC";
         $stmtBesoins = $db->query($sqlBesoins);
         $besoins = $stmtBesoins->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($besoins as $besoin) {
             // Quantité déjà reçue pour ce besoin (distributions validées)
-            $sqlRecu = "SELECT COALESCE(SUM(quantite), 0) FROM distribution 
+            $sqlRecu = "SELECT COALESCE(SUM(quantite), 0) FROM bngrc_distribution 
                         WHERE besoin_id = :besoin_id AND est_simulation = FALSE";
             $stmtRecu = $db->prepare($sqlRecu);
             $stmtRecu->execute([':besoin_id' => $besoin['id']]);
@@ -205,10 +205,10 @@ class Distribution
             // Récupérer les dons disponibles du même type d'article
             $sqlDons = "SELECT d.*, 
                         d.quantite - COALESCE((
-                            SELECT SUM(dist.quantite) FROM distribution dist 
+                            SELECT SUM(dist.quantite) FROM bngrc_distribution dist 
                             WHERE dist.don_id = d.id
                         ), 0) AS quantite_disponible
-                        FROM dons d
+                        FROM bngrc_dons d
                         WHERE d.type_article_id = :type_article_id
                         HAVING quantite_disponible > 0
                         ORDER BY d.date_don ASC, d.id ASC";
@@ -254,9 +254,9 @@ class Distribution
                     COUNT(*) AS nb_distributions,
                     SUM(dist.quantite) AS total_quantite,
                     SUM(dist.quantite * ta.prix_unitaire) AS total_montant
-                FROM distribution dist
-                JOIN dons d ON dist.don_id = d.id
-                JOIN type_articles ta ON d.type_article_id = ta.id
+                FROM bngrc_distribution dist
+                JOIN bngrc_dons d ON dist.don_id = d.id
+                JOIN bngrc_type_articles ta ON d.type_article_id = ta.id
                 WHERE dist.est_simulation = TRUE";
         $stmt = $db->query($sql);
         return $stmt->fetch(PDO::FETCH_ASSOC);
@@ -264,7 +264,7 @@ class Distribution
 
     public function delete(PDO $db): bool
     {
-        $sql = "DELETE FROM distribution WHERE id = :id";
+        $sql = "DELETE FROM bngrc_distribution WHERE id = :id";
         $stmt = $db->prepare($sql);
         return $stmt->execute([':id' => $this->id]);
     }

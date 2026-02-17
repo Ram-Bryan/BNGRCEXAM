@@ -166,4 +166,29 @@ class DTOBesoin
         if ($this->ratio_satisfaction === null) return '0%';
         return number_format($this->ratio_satisfaction, 1, ',', ' ') . '%';
     }
+
+    /**
+     * Retourne true si le besoin est considéré comme satisfait.
+     * Critères : quantite_restante <= 0 ou ratio_satisfaction >= 100
+     */
+    public function isSatisfait(): bool
+    {
+        if ($this->quantite_restante !== null) {
+            return $this->quantite_restante <= 0;
+        }
+        if ($this->ratio_satisfaction !== null) {
+            return $this->ratio_satisfaction >= 100;
+        }
+        return false;
+    }
+
+    public function getSatisfactionLabel(): string
+    {
+        return $this->isSatisfait() ? 'Satisfait' : 'Non satisfait';
+    }
+
+    public function getSatisfactionClass(): string
+    {
+        return $this->isSatisfait() ? 'badge-satisfied' : 'badge-not-satisfied';
+    }
 }

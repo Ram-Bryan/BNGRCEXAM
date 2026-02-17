@@ -1,24 +1,20 @@
 <?php include __DIR__ . '/../includes/header.php'; ?>
-<link rel="stylesheet" href="<?php echo Flight::get('flight.base_url'); ?>/assets/css/forms.css">
+<link rel="stylesheet" href="<?php echo $baseurl; ?>/assets/css/forms.css">
 
 <div class="page-container">
     <h1>🎁 Enregistrer un Don</h1>
     <p style="color: #666; margin-bottom: 30px;">Saisir un nouveau don (sera distribué plus tard via la simulation)</p>
 
-    <?php if (isset($_GET['error'])): ?>
-        <div class="error">⚠️ Erreur : <?php echo htmlspecialchars($_GET['error']); ?></div>
-    <?php endif; ?>
-
-    <?php if (isset($_GET['success'])): ?>
-        <div class="success-box">✅ <?php echo htmlspecialchars($_GET['success']); ?></div>
+    <?php if (!empty($message)): ?>
+        <div class="error">⚠️ Erreur : <?php echo htmlspecialchars($message); ?></div>
     <?php endif; ?>
 
     <div class="info-box">
         ℹ️ <strong>Note :</strong> Les dons sont saisis librement sans être liés directement à un besoin.
-        La distribution des dons vers les besoins se fait via la page <a href="/simulation">Simulation</a>.
+        La distribution des dons vers les besoins se fait via la page <a href="<?php echo $baseurl; ?>/simulation">Simulation</a>.
     </div>
 
-    <form action="/dons/create" method="POST">
+    <form action="<?php echo $baseurl; ?>/dons/create" method="POST">
         <div class="form-row">
             <div class="form-group">
                 <label for="donateur">Nom du donateur</label>
@@ -29,6 +25,7 @@
                 <label for="date_don">Date du don *</label>
                 <input type="date" name="date_don" id="date_don" required value="<?php echo date('Y-m-d'); ?>">
             </div>
+
         </div>
 
         <div class="form-group">
@@ -38,7 +35,7 @@
                 <?php foreach ($typeArticles as $article): ?>
                     <option value="<?php echo $article['id']; ?>" data-categorie="<?php echo $article['categorie']; ?>" data-unite="<?php echo htmlspecialchars($article['unite']); ?>">
                         <?php echo htmlspecialchars($article['nom']); ?>
-                        [<?php echo ucfirst($article['categorie']); ?>]
+                        [<?php echo $article['categorie']; ?>]
                         — <?php echo htmlspecialchars($article['unite']); ?>
                         <?php if ($article['categorie'] === 'argent'): ?>
                             💰
@@ -58,11 +55,11 @@
 
         <div class="buttons">
             <button type="submit" class="btn">✔️ Enregistrer le don</button>
-            <a href="/dons" class="btn btn-secondary">❌ Annuler</a>
+            <a href="<?php echo $baseurl; ?>/dons" class="btn btn-secondary">❌ Annuler</a>
         </div>
     </form>
 </div>
 
-<script src="<?php echo Flight::get('flight.base_url'); ?>/assets/js/don-form.js"></script>
+<script src="<?php echo $baseurl; ?>/assets/js/don-form.js"></script>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

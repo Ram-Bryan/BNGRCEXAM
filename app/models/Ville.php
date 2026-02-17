@@ -33,7 +33,7 @@ class Ville
 
     public function create(PDO $db): bool
     {
-        $sql = "INSERT INTO ville (nom, idregion, nbsinistres) VALUES (:nom, :idregion, :nbsinistres)";
+        $sql = "INSERT INTO bngrc_ville (nom, idregion, nbsinistres) VALUES (:nom, :idregion, :nbsinistres)";
         $stmt = $db->prepare($sql);
         $result = $stmt->execute([
             ':nom' => $this->nom,
@@ -48,7 +48,7 @@ class Ville
 
     public static function findById(PDO $db, int $id): ?Ville
     {
-        $sql = "SELECT * FROM ville WHERE id = :id";
+        $sql = "SELECT * FROM bngrc_ville WHERE id = :id";
         $stmt = $db->prepare($sql);
         $stmt->execute([':id' => $id]);
         $data = $stmt->fetch();
@@ -64,14 +64,14 @@ class Ville
 
     public static function findAllComplete(PDO $db): array
     {
-        $sql = "SELECT * FROM vue_villes_completes ORDER BY region_nom, ville_nom";
+        $sql = "SELECT * FROM v_bngrc_villes_completes ORDER BY region_nom, ville_nom";
         $stmt = $db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public static function findAll(PDO $db): array
     {
-        $sql = "SELECT * FROM ville ORDER BY nom";
+        $sql = "SELECT * FROM bngrc_ville ORDER BY nom";
         $stmt = $db->query($sql);
         $results = [];
         while ($data = $stmt->fetch()) {
@@ -87,7 +87,7 @@ class Ville
 
     public function update(PDO $db): bool
     {
-        $sql = "UPDATE ville SET nom = :nom, idregion = :idregion, nbsinistres = :nbsinistres WHERE id = :id";
+        $sql = "UPDATE bngrc_ville SET nom = :nom, idregion = :idregion, nbsinistres = :nbsinistres WHERE id = :id";
         $stmt = $db->prepare($sql);
         return $stmt->execute([
             ':nom' => $this->nom,
@@ -99,7 +99,7 @@ class Ville
 
     public function delete(PDO $db): bool
     {
-        $sql = "DELETE FROM ville WHERE id = :id";
+        $sql = "DELETE FROM bngrc_ville WHERE id = :id";
         $stmt = $db->prepare($sql);
         return $stmt->execute([':id' => $this->id]);
     }

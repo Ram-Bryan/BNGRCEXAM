@@ -1,0 +1,282 @@
+═══════════════════════════════════════════════════════════════════
+TODOLIST - MODULE DONS - RECONSTRUCTION COMPLÈTE
+═══════════════════════════════════════════════════════════════════
+
+📋 PHASE 1 : BASE DE DONNÉES (Estimation: 10min)
+───────────────────────────────────────────────────────────────────
+
+1.1 Créer la table `dons`
+    □ Colonnes : id (PK AUTO_INCREMENT), type_article_id (FK)
+    □ Colonnes : quantite (INT), date_don (DATE), donateur (VARCHAR), statut (ENUM)
+    □ Statut : ENUM('disponible', 'distribue', 'epuise') DEFAULT 'disponible'
+    □ Index : INDEX(type_article_id), INDEX(date_don), INDEX(statut)
+    ⏱ Temps estimé : 4 min
+    ✓ État initial : table vide, 0 ligne
+
+1.2 Créer la vue `vue_dons_complets`
+    □ SELECT d.*, ta.nom AS article_nom, ta.categorie
+    □ ta.prix_unitaire, ta.unite
+    □ (d.quantite * ta.prix_unitaire) AS montant_total
+    □ COALESCE(SUM(dist.quantite), 0) AS quantite_distribuee
+    □ (d.quantite - quantite_distribuee) AS quantite_disponible
+    □ JOIN type_articles ta ON d.type_article_id = ta.id
+    □ LEFT JOIN distributions dist ON dist.don_id = d.id AND dist.est_simulation = FALSE
+    □ GROUP BY d.id
+    ⏱ Temps estimé : 6 min
+    ✓ État initial : vue vide car table dons vide
+
+
+📋 PHASE 2 : MODÈLES (Estimation: 15min)
+───────────────────────────────────────────────────────────────────
+
+2.1 Créer Don.php (app/models/)
+    □ Namespace models, use PDO
+    □ Properties PRIVÉES : id, type_article_id, quantite, date_don, donateur, statut
+    □ Constructor vide : public function __construct() {}
+    ⏱ Temps estimé : 2 min
+    ✓ État initial : classe vide, aucun don en DB
+
+2.2 Getters Don.php
+    □ getId(): ?int
+    □ getTypeArticleId(): ?int
+    □ getQuantite(): ?int
+    □ getDateDon(): ?string
+    □ getDonateur(): ?string
+    □ getStatut(): ?string
+    ⏱ Temps estimé : 2 min
+
+2.3 Setters Don.php (fluent interface)
+    □ setId(?int $id): self { $this->id = $id; return $this; }
+    □ setTypeArticleId(?int $type_article_id): self
+    □ setQuantite(?int $quantite): self
+    □ setDateDon(?string $date_don): self
+    □ setDonateur(?string $donateur): self
+    □ setStatut(?string $statut): self
+    ⏱ Temps estimé : 2 min
+
+2.4 Méthodes CRUD Don.php
+    □ create(PDO $db): bool - INSERT avec prepared statement
+    □ findById(PDO $db, int $id): ?Don - SELECT avec setters
+    □ findAll(PDO $db): array - SELECT * ORDER BY date_don DESC
+    □ findAllComplete(PDO $db): array - SELECT * FROM vue_dons_complets
+    □ findAllDisponibles(PDO $db): array - WHERE quantite_disponible > 0 ORDER BY date_don ASC
+    □ update(PDO $db): bool - UPDATE dons SET ... WHERE id
+    □ delete(PDO $db): bool - DELETE FROM dons WHERE id
+    ⏱ Temps estimé : 9 min
+    ✓ État initial DB : 0 dons après findAll()
+
+
+📋 PHASE 3 : DTO (Estimation: 12min)
+───────────────────────────────────────────────────────────────────
+
+3.1 Créer DTODon.php (app/dto/)
+    □ Namespace dto
+    □ Properties PRIVÉES : id, type_article_id, quantite, date_don, donateur, statut
+    □ Properties PRIVÉES : article_nom, categorie, prix_unitaire, unite
+    □ Properties PRIVÉES : montant_total, quantite_distribuee, quantite_disponible
+    □ Constructor vide
+    ⏱ Temps estimé : 3 min
+    ✓ État initial : aucun DTO, DB vide
+
+3.2 Getters/Setters DTODon.php
+    □ 13 getters : getId(), getTypeArticleId(), getQuantite(), getDateDon(), etc.
+    □ 13 setters avec fluent interface : setId(?int $id): self
+    ⏱ Temps estimé : 4 min
+
+3.3 Méthodes statiques et helpers DTODon
+    □ static fromArray(array $data): DTODon - utiliser setters (chaînage)
+    □ static fromArrayMultiple(array $dataArray): array
+    □ getQuantiteFormatee(): string - number_format($this->quantite)
+    □ getQuantiteDistribueeFormatee(): string
+    □ getQuantiteDisponibleFormatee(): string
+    □ getDateFormatee(): string - date('d/m/Y', strtotime())
+    □ getMontantFormate(): string - number_format avec 'Ar'
+    □ getCategorieClass(): string - match categorie
+    □ getStatutClass(): string - match statut
+    □ isDisponible(): bool - quantite_disponible > 0
+    □ isPeutSupprimer(): bool - quantite_disponible == quantite (pas distribué)
+    ⏱ Temps estimé : 5 min
+
+
+📋 PHASE 4 : CONTRÔLEUR (Estimation: 18min)
+───────────────────────────────────────────────────────────────────
+
+4.1 Créer DonController.php (app/controllers/)
+    □ Namespace controllers
+    □ use models\Don, models\TypeArticle, Flight, PDO, dto\DTODon
+    □ TOUS LES MÉTHODES STATIC : public static function
+    □ Pas de constructor, pas de $this->db
+    □ Utiliser Flight::db() dans chaque méthode
+    ⏱ Temps estimé : 2 min
+    ✓ État initial : aucun controller, pas de routes
+
+4.2 Méthode listDons()
+    □ public static function listDons(): void
+    □ $db = Flight::db()
+    □ $dons = Don::findAllComplete($db)
+    □ Calculer statistiques backend : $totalDons = count($dons)
+    □ Boucle foreach : $totalDisponible += $don->getQuantiteDisponible()
+    □ Boucle foreach : $totalDistribue += $don->getQuantiteDistribuee()
+    □ Flight::render('don/list', ['dons' => $dons, 'totalDons' => ..., ...])
+    ⏱ Temps estimé : 4 min
+    ✓ État initial : affichera 0 dons (DB vide)
+
+4.3 Méthode showForm()
+    □ public static function showForm(): void
+    □ $db = Flight::db()
+    □ $typeArticles = TypeArticle::findAll($db)
+    □ Flight::render('don/form', ['typeArticles' => $typeArticles])
+    ⏱ Temps estimé : 2 min
+
+4.4 Méthode create()
+    □ public static function create(): void
+    □ $db = Flight::db()
+    □ $request = Flight::request()
+    □ Extraire : type_article_id, quantite, date_don, donateur
+    □ Créer Don avec setters (fluent interface)
+    □ if ($don->create($db)) { $message = 'Don enregistré avec succès !'; }
+    □ else { $message = 'Erreur lors de la création du don'; }
+    □ Toujours fetch $dons = Don::findAllComplete($db)
+    □ Toujours calculer $totalDons, $totalDisponible, $totalDistribue
+    □ Flight::render('don/list', [...]) avec message OU render 'don/form' avec message
+    □ Gérer try/catch pour erreurs
+    ⏱ Temps estimé : 6 min
+    ✓ Création : DB passe de 0 à 1 ligne
+
+4.5 Méthode delete($id)
+    □ public static function delete($id): void
+    □ $db = Flight::db()
+    □ $don = Don::findById($db, $id)
+    □ if (!$don) { $message = 'Don non trouvé'; }
+    □ elseif ($don->delete($db)) { $message = 'Don supprimé avec succès !'; }
+    □ else { $message = 'Erreur lors de la suppression'; }
+    □ Toujours fetch $dons = Don::findAllComplete($db)
+    □ Toujours calculer stats backend
+    □ Flight::render('don/list', ['dons' => $dons, 'message' => $message, ...])
+    ⏱ Temps estimé : 4 min
+
+
+📋 PHASE 5 : VUES (Estimation: 18min)
+───────────────────────────────────────────────────────────────────
+
+5.1 Créer form.php (app/views/don/)
+    □ <?php include header, link CSS forms.css
+    □ H1 : 🎁 Enregistrer un Don
+    □ Div message unifié : <?php if (!empty($message)): ?>
+    □ Info-box : note sur la distribution via Simulation
+    □ Form POST /dons/create
+    □ Input donateur (optionnel), input date_don (value=today)
+    □ Select type_article_id : foreach $typeArticles
+    □ Option display : nom [categorie] — unite (PAS ucfirst)
+    □ Input quantite (type=number, required, min=1)
+    □ Buttons : submit "Enregistrer le don", annuler (retour /dons)
+    ⏱ Temps estimé : 6 min
+    ✓ État initial : formulaire vide, DB 0 don
+
+5.2 Créer list.php (app/views/don/)
+    □ <?php include header, link CSS dons.css
+    □ Header : H1 + boutons (Nouveau don, Distribution)
+    □ Div message unifié : <?php if (!empty($message)): ?>
+    □ Info-cards avec statistiques backend : $totalDons, $totalDisponible, $totalDistribue
+    □ Empty state si empty($dons) : affiche "Aucun don enregistré"
+    □ Table avec thead : ID, Date, Donateur, Article, Catégorie, Quantité, Disponible, Statut, Actions
+    □ Tbody foreach $dons : UTILISER GETTERS uniquement
+    □ $don->getId(), $don->getDateFormatee(), $don->getDonateur()
+    □ $don->getArticleNom(), $don->getCategorie() (PAS ucfirst)
+    □ Badge categorie : badge-<?php echo $don->getCategorie(); ?>
+    □ $don->getQuantiteFormatee(), $don->getUnite()
+    □ Si $don->isDisponible() : afficher quantite disponible formatée
+    □ Badge statut : $don->isDisponible() ? 'Disponible' : 'Distribué'
+    □ Actions : si $don->isPeutSupprimer() afficher form delete avec confirm
+    □ Sinon : span "Déjà distribué"
+    ⏱ Temps estimé : 8 min
+    ✓ État initial : empty state visible, 0 ligne table
+
+5.3 Vérifier includes/header.php et footer.php
+    □ Header : logo, navigation, liens actifs
+    □ Footer : copyright, liens utiles
+    ⏱ Temps estimé : 2 min
+
+5.4 CSS dons.css et forms.css
+    □ .badge-satisfied { background: #28a745; }
+    □ .badge-not-satisfied { background: #dc3545; }
+    □ .badge-nature, .badge-argent, .badge-material
+    □ .info-cards, .info-card (blue, green, orange)
+    □ .empty-state, .btn, .btn-success, .btn-danger
+    ⏱ Temps estimé : 2 min
+
+
+📋 PHASE 6 : ROUTES (Estimation: 2min)
+───────────────────────────────────────────────────────────────────
+
+6.1 Déclarer routes dons (app/routes.php)
+    □ use controllers\DonController
+    □ Flight::route('GET /dons', [DonController::class, 'listDons'])
+    □ Flight::route('GET /dons/ajout', [DonController::class, 'showForm'])
+    □ Flight::route('POST /dons/create', [DonController::class, 'create'])
+    □ Flight::route('POST /dons/@id/delete', [DonController::class, 'delete'])
+    ⏱ Temps estimé : 2 min
+    ✓ État initial : routes non déclarées
+
+
+═══════════════════════════════════════════════════════════════════
+RÉSUMÉ ÉTAT INITIAL
+═══════════════════════════════════════════════════════════════════
+
+✓ Base de données : Table dons VIDE (0 ligne)
+✓ Vue vue_dons_complets : VIDE car table source vide
+✓ Model Don.php : findAll() retourne array vide []
+✓ DTO DTODon : fromArrayMultiple([]) retourne []
+✓ Controller : listDons() affichera empty state
+✓ Vue list.php : affiche "Aucun don enregistré" + bouton Nouveau don
+✓ Vue form.php : formulaire vide prêt pour premier don
+✓ Après create() : DB passe de 0 à 1 ligne, list affiche 1 don
+
+═══════════════════════════════════════════════════════════════════
+FONCTIONNALITÉS CLÉS
+═══════════════════════════════════════════════════════════════════
+
+1. Enregistrement dons
+   □ Formulaire avec type_article, quantite, date_don, donateur (optionnel)
+   □ Validation backend : quantite > 0, type_article_id existe
+   □ INSERT dans table dons avec statut 'disponible'
+   □ Message succès/erreur affiché dans liste
+   ✓ Évolution DB : 0 → 1 → 2 → ... dons
+
+2. Liste des dons
+   □ Affichage vide si DB = 0 dons
+   □ Table complète avec toutes infos (vue_dons_complets)
+   □ Statistiques calculées backend : total, disponible, distribué
+   □ Badge catégorie (nature/argent/material)
+   □ Badge statut (disponible/distribué)
+   □ Actions conditionnelles : supprimer si non distribué
+
+3. Suppression don
+   □ Vérification : don existe + quantite_disponible == quantite (pas distribué)
+   □ DELETE avec confirmation JavaScript
+   □ Message succès/erreur
+   ✓ Évolution DB : N dons → N-1 dons
+
+4. Intégration avec distributions
+   □ Vue vue_dons_complets calcule quantite_distribuee via LEFT JOIN distributions
+   □ quantite_disponible = quantite - quantite_distribuee
+   □ isDisponible() : quantite_disponible > 0
+   □ isPeutSupprimer() : quantite_distribuee == 0
+
+5. Messages utilisateur
+   □ Jamais de redirect avec URL params
+   □ Toujours $message variable locale
+   □ Toujours render avec fetch complet des données
+   □ Message unifié dans vue : <?php if (!empty($message)): ?>
+
+═══════════════════════════════════════════════════════════════════
+DURÉE TOTALE ESTIMÉE : 1h15 (75 minutes)
+═══════════════════════════════════════════════════════════════════
+
+BÉNÉFICES :
+✓ Cohérence architecturale : Dons suit pattern Besoins
+✓ Encapsulation complète : DTODon avec getters/setters
+✓ Séparation responsabilités : logique backend, affichage frontend
+✓ Messages propres : pas de URL params, variable locale
+✓ Testabilité : méthodes statiques, PDO injectable
+✓ UX claire : statistiques calculées, badges visuels

@@ -36,8 +36,8 @@ class TypeArticle
 
     public function create(PDO $db): bool
     {
-        $sql = "INSERT INTO type_articles (nom, categorie, prix_unitaire, unite) 
-                VALUES (:nom, :categorie, :prix_unitaire, :unite)";
+        $sql = "INSERT INTO bngrc_type_articles (nom, categorie, prix_unitaire, unite) 
+            VALUES (:nom, :categorie, :prix_unitaire, :unite)";
         $stmt = $db->prepare($sql);
         $result = $stmt->execute([
             ':nom' => $this->nom,
@@ -53,7 +53,7 @@ class TypeArticle
 
     public static function findById(PDO $db, int $id): ?TypeArticle
     {
-        $sql = "SELECT * FROM type_articles WHERE id = :id";
+        $sql = "SELECT * FROM bngrc_type_articles WHERE id = :id";
         $stmt = $db->prepare($sql);
         $stmt->execute([':id' => $id]);
         $data = $stmt->fetch();
@@ -87,14 +87,14 @@ class TypeArticle
 
     public static function findAll(PDO $db): array
     {
-        $sql = "SELECT * FROM type_articles ORDER BY categorie, nom";
+        $sql = "SELECT * FROM bngrc_type_articles ORDER BY categorie, nom";
         $stmt = $db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function update(PDO $db): bool
     {
-        $sql = "UPDATE type_articles SET nom = :nom, categorie = :categorie, prix_unitaire = :prix_unitaire, unite = :unite WHERE id = :id";
+        $sql = "UPDATE bngrc_type_articles SET nom = :nom, categorie = :categorie, prix_unitaire = :prix_unitaire, unite = :unite WHERE id = :id";
         $stmt = $db->prepare($sql);
         return $stmt->execute([
             ':nom' => $this->nom,
@@ -107,7 +107,7 @@ class TypeArticle
 
     public function delete(PDO $db): bool
     {
-        $sql = "DELETE FROM type_articles WHERE id = :id";
+        $sql = "DELETE FROM bngrc_type_articles WHERE id = :id";
         $stmt = $db->prepare($sql);
         return $stmt->execute([':id' => $this->id]);
     }

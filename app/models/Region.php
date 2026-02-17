@@ -43,7 +43,7 @@ class Region
 
     public function create(PDO $db): bool
     {
-        $sql = "INSERT INTO region (nom) VALUES (:nom)";
+        $sql = "INSERT INTO bngrc_region (nom) VALUES (:nom)";
         $stmt = $db->prepare($sql);
         $result = $stmt->execute([':nom' => $this->nom]);
         if ($result) {
@@ -54,7 +54,7 @@ class Region
 
     public static function findById(PDO $db, int $id): ?Region
     {
-        $sql = "SELECT * FROM region WHERE id = :id";
+        $sql = "SELECT * FROM bngrc_region WHERE id = :id";
         $stmt = $db->prepare($sql);
         $stmt->execute([':id' => $id]);
         $data = $stmt->fetch();
@@ -67,7 +67,7 @@ class Region
 
     public static function findAll(PDO $db): array
     {
-        $sql = "SELECT * FROM region ORDER BY nom";
+        $sql = "SELECT * FROM bngrc_region ORDER BY nom";
         $stmt = $db->query($sql);
         $results = [];
         while ($data = $stmt->fetch()) {
@@ -80,14 +80,14 @@ class Region
 
     public function update(PDO $db): bool
     {
-        $sql = "UPDATE region SET nom = :nom WHERE id = :id";
+        $sql = "UPDATE bngrc_region SET nom = :nom WHERE id = :id";
         $stmt = $db->prepare($sql);
         return $stmt->execute([':nom' => $this->nom, ':id' => $this->id]);
     }
 
     public function delete(PDO $db): bool
     {
-        $sql = "DELETE FROM region WHERE id = :id";
+        $sql = "DELETE FROM bngrc_region WHERE id = :id";
         $stmt = $db->prepare($sql);
         return $stmt->execute([':id' => $this->id]);
     }

@@ -14,13 +14,23 @@ MINSSION Refractor Dons:
                 $totalDistribue += $distribue;
             }
             ?>
+        - make sure to never do logic inside frontend like this:                     $disponible = $don['quantite_disponible'] ?? ($don['quantite'] - ($don['quantite_distribuee'] ?? 0));
+        Make sure to always populate inside backend and verify nside bacend and never do claculations inside frontend
+        - n utilise pas ucfirst
     
     - form.php:
         - utilser isset GET message
-        
+        - ne pas mettre ucfirst
     
     - routes.php:
         - pas de new DonCotnroller mais Doncontroller::class avec foncions statiques 
     
-    - creer la todolist2.txt cette fois pour les dons comme tu l'as fais pour la todolist1 des besoins
-        
+    - DonController.php:
+        - faire les messages en Data comme dans besoinsController
+    
+    - Dons.php: fonction findAllComplete creer des DTODons and populate array et update la vue correspondantes (les attributs non essentielles peuvent etre nul) 
+
+    - DTODons.php:
+        - fait et utilise getters et setters
+    
+    - creer la todolist2.txt cette fois pour les dons comme tu l'as fais pour la todolist1 des besoins (si on refesait tous a 0 relatif au dons)

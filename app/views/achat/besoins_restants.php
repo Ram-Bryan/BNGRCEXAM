@@ -1,5 +1,5 @@
 <?php include __DIR__ . '/../includes/header.php'; ?>
-<link rel="stylesheet" href="<?php echo Flight::get('flight.base_url'); ?>/assets/css/achats.css">
+<link rel="stylesheet" href="<?php echo $baseurl; ?>/assets/css/achats.css">
 
 <div class="page-container">
 
@@ -158,7 +158,7 @@
             <h1>🛒 Besoins Restants - Faire un Achat</h1>
             <p style="color: #666;">Utilisez les dons en argent pour acheter des besoins en nature ou matériaux</p>
         </div>
-        <a href="/achats" class="btn">📋 Voir les achats</a>
+        <a href="<?php echo $baseurl; ?>/achats" class="btn">📋 Voir les achats</a>
     </div>
 
     <?php if (isset($_GET['error'])): ?>
@@ -178,7 +178,7 @@
 
     <div class="filter-bar">
         <label>Filtrer par ville :</label>
-        <select onchange="window.location.href='/achats/besoins?ville_id=' + this.value">
+        <select onchange="window.location.href='<?php echo $baseurl; ?>/achats/besoins?ville_id=' + this.value">
             <option value="">-- Toutes les villes --</option>
             <?php foreach ($villes as $ville): ?>
                 <option value="<?php echo $ville['id']; ?>" <?php echo ($ville_id == $ville['id']) ? 'selected' : ''; ?>>
@@ -224,7 +224,7 @@
                         <td><?php echo number_format($besoin['prix_unitaire'], 2, ',', ' '); ?> Ar</td>
                         <td><strong><?php echo number_format($montantRestant, 2, ',', ' '); ?> Ar</strong></td>
                         <td>
-                            <form method="POST" action="/achats/create" class="achat-form" onsubmit="return confirmAchat(this, <?php echo $besoin['prix_unitaire']; ?>, <?php echo $fraisPercent; ?>, <?php echo $argentDisponible; ?>);">
+                            <form method="POST" action="<?php echo $baseurl; ?>/achats/create" class="achat-form" onsubmit="return confirmAchat(this, <?php echo $besoin['prix_unitaire']; ?>, <?php echo $fraisPercent; ?>, <?php echo $argentDisponible; ?>);">
                                 <input type="hidden" name="besoin_id" value="<?php echo $besoin['id']; ?>">
                                 <input type="number" name="quantite" min="1" max="<?php echo $besoin['quantite_restante']; ?>" value="1" required>
                                 <button type="submit" class="btn btn-success btn-small">🛒 Acheter</button>
@@ -237,6 +237,6 @@
     <?php endif; ?>
 </div>
 
-<script src="<?php echo Flight::get('flight.base_url'); ?>/assets/js/achat.js"></script>
+<script src="<?php echo $baseurl; ?>/assets/js/achat.js"></script>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

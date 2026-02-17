@@ -1,8 +1,8 @@
 <?php include __DIR__ . '/../includes/header.php'; ?>
-<link rel="stylesheet" href="<?php echo Flight::get('flight.base_url'); ?>/assets/css/stats.css">
+<link rel="stylesheet" href="<?php echo $baseurl; ?>/assets/css/stats.css">
 
 <div class="page-container">
-    <a href="/stats" class="btn" style="margin-bottom: 20px;">← Retour aux statistiques</a>
+    <a href="<?php echo $baseurl; ?>/stats" class="btn" style="margin-bottom: 20px;">← Retour aux statistiques</a>
 
     <div class="ville-header">
         <h1>🏙️ <?php echo htmlspecialchars($ville['ville_nom']); ?></h1>
